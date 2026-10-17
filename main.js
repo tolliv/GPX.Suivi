@@ -1,0 +1,450 @@
+//--------------------------------------------------------------------------------------------------
+// Fichier main
+//--------------------------------------------------------------------------------------------------
+var gItineraire = [];
+var gPositions = [];
+var gDistanceTotaleItineraire = 0;
+var gDistanceParcourue = 0;
+var gCurrentZoom = 5;
+var gCurrentCenter = [46.5397, 2.4303];
+var gRafraichirEnCours = false;
+
+//----- Gestionnaires d'événements DOM -----
+document.addEventListener('DOMContentLoaded', function()
+{
+  AfficheCarte();
+  Run();
+});
+
+//--------------------------------------------------------------------------------------------------
+// Raccourci sur les éléments du DOM
+//--------------------------------------------------------------------------------------------------
+function pid(id)
+{
+  const element = document.getElementById(id);
+  if (id == null)
+    console.log("ID NULL (" + id + ")");
+  return(element);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Sleep
+//--------------------------------------------------------------------------------------------------
+const sleep = ms => new Promise(res => setTimeout(res, ms));
+
+
+//--------------------------------------------------------------------------------------------------
+// Charge un fichier GPX, l'analyse et extrait les coordonnées lat,lon,alt
+//--------------------------------------------------------------------------------------------------
+async function ButLoadClick()
+{
+  var lAvancement = 0;
+
+  // Chargement
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.gpx';
+
+  var content = null;
+  input.onchange = e =>
+  {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e =>
+    {
+      content = e.target.result;
+      lAvancement = 1;
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+
+  // Attente de la lecture du fichier
+  while (lAvancement == 0)
+  {
+    await sleep(50);
+  }
+
+  // Parsing
+  const {length, data} = parseGpxToCoords(content);
+  if (length != 0)
+  {
+    console.log(length + " points");
+    lAvancement = 2;
+  }
+  else
+  {
+    console.log("Erreur fichier");
+    lAvancement = 3;
+  }
+
+  // Ecriture dans la base de données par bloc de 1000 points
+  const t0 = performance.now();
+  const batchSize = 1000;
+  var lStatus;
+  for (let i = 0; i < data.length; i += batchSize)
+  {
+    // Découpage
+    const chunk = data.slice(i, i + batchSize);
+
+    // Envoi du paquet
+    lStatus = await SupabaseWrite(chunk);
+    if (lStatus !== "OK")
+      break;
+
+    console.log("Progression : " + i);
+  }
+  const delta = Math.round(0.100*(performance.now() - t0))/100;
+  console.log("Ecriture " + lStatus + " (" + delta + "s)");
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// Analyse le contenu XML d'un fichier GPX pour en extraire les points
+//--------------------------------------------------------------------------------------------------
+function parseGpxToCoords(xmlContent)
+{
+  var lNb = 0;
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+  const trackPoints = xmlDoc.querySelectorAll("trkpt");
+  const coords = [];
+
+  trackPoints.forEach(pt => {
+    const lat = parseFloat(pt.getAttribute("lat"));
+    const lon = parseFloat(pt.getAttribute("lon"));
+    var alt = parseFloat(pt.getAttribute("alt"));
+
+    if (isNaN(alt))
+      alt = 0;
+
+    if (!isNaN(lat) && !isNaN(lon))
+    {
+      const lDate = DateSupabase();   // Même date pour tous les points
+      coords.push({ user:USER,
+                    date:lDate,
+                    type:0,           // Itinéraire
+                    lat:lat,
+                    lon:lon,
+                    alt:alt,
+                    prec:0,
+                    poi:0,
+                    msg:""
+                    });
+      lNb++;
+    }
+  });
+  return{length:lNb, data:coords};
+}
+
+//--------------------------------------------------------------------------------------------------
+// Démarrage de l'affichage du suivi
+//--------------------------------------------------------------------------------------------------
+async function Run()
+{
+  console.log("Chargement itinéraire..");
+
+  // Compte le nombre de points avant de les charger
+  const lCmd = "user=eq." + USER
+             + "&type=eq.0"
+             + "&order=id.asc"
+             + "&limit=0";        // Ne charge rien
+  var { status, count } = await SupabaseCount(lCmd);
+  if (status == "OK")
+  {
+    console.log("Nombre de points : " + count);
+    if (count > 0)
+    {
+      gItineraire = [];
+      let offset = 0;
+
+      // Limitation par GET
+      const batchSize = 1000;
+      while (1)
+      {
+        const lCmd = "user=eq." + USER
+                   + "&type=eq.0"
+                   + "&order=id.asc"
+                   + "&offset=" + offset
+                   + "&limit=" + batchSize;
+        var { status, length, data } = await SupabaseRead(lCmd);
+
+        // Si erreur
+        if (status != "OK")
+          break;
+
+        // Si OK
+        else
+        {
+          // Nouveaux points
+          if (length > 0)
+          {
+            gItineraire = gItineraire.concat(data);
+            console.log("Chargés : " + gItineraire.length + " points...");
+
+            // Sinon, on continue avec la prochaine page
+            offset += batchSize;
+           }
+
+          // Fin du chargement
+           else
+              break;
+        }
+      }
+
+      // Fin du chargement
+      if (status !== "OK")
+      {
+        console.log(status);
+      }
+      else
+      {
+        console.log("OK " + gItineraire.length + " points");
+        if (gItineraire.length > 0)
+        {
+          SimulationPoints();  // Pour le DEBUG
+          AfficheRattachements();
+          AfficheItineraire();
+          AffichePositions();
+          CalculeDistanceTotaleEtParcourue();
+          AfficheProgression();
+        }
+      }
+    }
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+// Met à jour la position du randonneur sur la barre
+//--------------------------------------------------------------------------------------------------
+function AfficheProgression()
+{
+  // Distances
+  const lParcourue = Math.floor(gDistanceParcourue*10)/10;
+  const lTotale = Math.floor(gDistanceTotaleItineraire*10)/10;
+  const lRestant = Math.floor((lTotale-lParcourue)*10)/10;
+  const lPourcentage = Math.floor(lParcourue*100/lTotale);
+  pid('spanDistanceMin').innerHTML = "0km";
+  pid('spanDistanceMax').innerHTML = lTotale + "km";
+
+  var p = Math.max(0, Math.min(100, lPourcentage));
+
+  // Barre de progression
+  pid('progression-fill').style.width = p + '%';
+
+  // Position sur la barre de progression
+  pid('imgPosition').style.opacity = '100';
+  pid('imgPosition').style.left = p + '%';
+
+  // On attend la fin de déplacement de la position pour afficher la date
+  pid('imgPosition').addEventListener('transitionend', () =>
+  {
+    // Texte date et heure au-dessus
+    const lDate = "<b>Aujourd'hui</b><br>18h15";
+    pid('txtHeurePosition').innerHTML = lDate;
+
+    const containerWidth = pid('progression-container').offsetWidth;
+    const minPx = 45;
+    const maxPx = containerWidth-45;
+
+    // Conversion du pourcentage p en pixels
+    let targetPx = (p / 100) * containerWidth;
+
+    // On contraint la position (Clamp)
+    if (targetPx < minPx) targetPx = minPx;
+    if (targetPx > maxPx) targetPx = maxPx;
+
+    // On applique la position en pixels
+    pid('txtHeurePosition').style.left = targetPx + 'px';
+    pid('txtHeurePosition').style.opacity = '100';
+
+    pid('divDistances').innerHTML  = "Parcouru : <span class='text-large'><b>" + lParcourue + "</b></span> km";
+    pid('divDistances').innerHTML += " -  Restant : <span class='text-large'><b>" + lRestant + "</b></span> km";
+
+    // lPourcentage
+    pid('divAvancement').innerHTML = p + "<small>%</small>";
+    pid('divAvancement').style.opacity = '100';
+
+    // Fin d'un éventuel rafraichissement en cours
+    gRafraichirEnCours = false;
+  }, { once: true });
+}
+
+//--------------------------------------------------------------------------------------------------
+// Calcule la distance totale et la distance parcourue
+//--------------------------------------------------------------------------------------------------
+function CalculeDistanceTotaleEtParcourue()
+{
+  gDistanceTotaleItineraire = 0;
+  gDistanceParcourue = 0;
+  const R = 6371;                                                   // Rayon moyen de la Terre en km
+
+  if (gItineraire.length < 2) return;
+  const dernierePosition = gPositions[gPositions.length - 1].numeroPointItineraire;;
+
+  // Parcourt tous les points de l'itinéraire
+  for (let i = 0; i < gItineraire.length - 1; i++)
+  {
+    const p1 = gItineraire[i];
+    const p2 = gItineraire[i + 1];
+    const dLat = (p2.lat - p1.lat) * Math.PI / 180;
+    const dLon = (p2.lon - p1.lon) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    gDistanceTotaleItineraire += distance;
+
+    // Position actuelle
+    if (i == dernierePosition)
+    {
+      gDistanceParcourue = gDistanceTotaleItineraire;
+    }
+  }
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// Calcule une distance approximative mais très rapide pour les courtes distances.
+// On retourne la distance au carré pour éviter la racine carrée (Math.sqrt)
+//--------------------------------------------------------------------------------------------------
+function calculeDistanceEntrePoints(p1, p2)
+{
+  // 111.32 km est la distance approximative d'un degré de latitude
+  const ky = 111.32;
+
+  // On ajuste la longitude en fonction de la latitude moyenne
+  const kx = Math.cos(p1.lat * Math.PI / 180) * 111.32;
+  const dx = (p1.lon - p2.lon) * kx;
+  const dy = (p1.lat - p2.lat) * ky;
+  return(dx * dx + dy * dy);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Affiche les rattachements des positions à l'itinéraire (point le plus proche)
+//--------------------------------------------------------------------------------------------------
+function AfficheRattachements()
+{
+  var indexPosition = 0;
+  var distanceMin = Infinity;
+  var indexLePlusProche = -1;
+
+  // Pour chaque position mémorisée
+  gPositions.forEach((pos) =>
+  {
+    distanceMin = Infinity;
+    indexLePlusProche = -1;
+    indexPosition++;
+
+    // On cherche dans tout l'itinéraire le point le plus proche de la position actuelle
+    for (let i = 0; i < gItineraire.length; i++)
+    {
+      const d = calculeDistanceEntrePoints(pos, gItineraire[i]);
+      if (d < distanceMin)
+      {
+        distanceMin = d;
+        indexLePlusProche = i;
+      }
+    }
+
+    // On stocke l'index trouvé
+    pos.numeroItineraire = 0;                           // Numéro de l'itinéraire (pas encore utilisé)
+    pos.numeroPointItineraire = indexLePlusProche;      // Numéro du point de l'itinéraire
+    pos.distance = Math.sqrt(distanceMin);
+    // console.log("Position " + indexPosition +" -> point " + indexLePlusProche + " (Dist: " + pos.distance.toFixed(3) + " km)");
+  });
+}
+
+//--------------------------------------------------------------------------------------------------
+// Rafraichir la carte, l'itinéraire et les points de suivi
+//--------------------------------------------------------------------------------------------------
+async function Rafraichir()
+{
+  // Uniquement si pas en cours
+  if (gRafraichirEnCours == false)
+  {
+    gRafraichirEnCours = true;
+
+    // Mémorise vue actuelle
+    gCurrentZoom = map.getZoom();
+    gCurrentCenter = map.getCenter();
+
+    // Remet les curseurs à 0 rapidement
+    const backupTransitionBarre = pid('progression-fill').style.transition;
+    const backupTransitionImage = pid('imgPosition').style.transition;
+    pid('progression-fill').style.transition = 'width 0s ease';
+    pid('imgPosition').style.transition = 'left 0s ease';
+    pid('imgPosition').style.left = '0%';
+    pid('imgPosition').style.opacity = '0';
+
+    pid('txtHeurePosition').style.opacity = '0';
+    pid('progression-fill').style.width = '0%';
+    pid('divAvancement').style.opacity = 0;
+    pid('divDistances').innerHTML = "&nbsp;";
+
+    // Efface l'itinéraire et les marqueurs mais pas la carte
+    map.eachLayer(function (layer)
+    {
+      // On ne supprime pas la couche de tuiles (TileLayer)
+      if (layer instanceof L.Polyline || layer instanceof L.Marker || layer instanceof L.CircleMarker)
+      {
+        map.removeLayer(layer);
+      }
+    });
+
+    // Attente pour que tout soit effacé
+    await sleep(300);
+    pid('progression-fill').style.transition = backupTransitionBarre;
+    pid('imgPosition').style.transition = backupTransitionImage;
+
+    // Relire la base de données Position
+    // TODO
+
+    AfficheRattachements();
+    AfficheItineraire();
+    AffichePositions();
+    CalculeDistanceTotaleEtParcourue();
+    AfficheProgression();
+  }
+}
+
+//==================================================================================================
+
+
+
+//--------------------------------------------------------------------------------------------------
+// Simulation des points de suivi
+//--------------------------------------------------------------------------------------------------
+function SimulationPoints()
+{
+  const increment = Math.floor(gItineraire.length / 9);
+  gPositions = [];
+  var nb = 0;
+  for (let i = 0; i < (gItineraire.length - 0*increment); i++)
+  {
+    if (i%increment == 0)
+    {
+      nb++;
+
+      // Crée un nouvel élément
+      var lLigne = {...gItineraire[i]};
+
+      // POI
+                   {lLigne.poi = 2; }
+      if (nb == 1) {lLigne.poi = 1; lLigne.lat += 0.005;}
+      if (nb == 6) {lLigne.poi = 3; lLigne.lat += 0.005;}
+
+      msg  = "<b>15/10/2026 à " + (10+nb).toString() + "h15</b><br>";
+      msg += "Altitude : " + (1000+nb).toString() + "m<br>";
+      msg += "Coordonnées : " + lLigne.lat.toFixed(6) + "," + lLigne.lon.toFixed(6) + "<br>";
+      msg += "Précision : 5m<br>";
+      lLigne.msg = msg;
+
+      gPositions.push(lLigne);
+      if (nb == 8) break;
+    }
+  }
+}

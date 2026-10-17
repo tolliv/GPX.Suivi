@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>GPX.Suivi</title>
+  <meta charset='UTF-8'>
+</head>
+<body>
+
+  <!----- PARTIE ADMIN ----->
+  <link rel='stylesheet' type='text/css' href='main.css'>
+  <script src='main.js'> </script>
+  <script src='driverSupabase.js'> </script>
+  <div class="main-container">
+    <div id='divAdmin' style='display: none'>
+      <b>Admin</b><br>
+      <button id='btnSTest'       onclick='ButTestClick()'>T</button>
+      <button id='btnSEnvoi'      onclick='ButEnvoiClick()'>W</button>
+      <button id='btnSLecture1'   onclick='ButLectureClick(1)'>R1</button>
+      <button id='btnSLecture10'  onclick='ButLectureClick(10)'>R10</button>
+      <button id='btnSClear'      onclick='ButClearClick()'>Clr</button>
+      <button id='btnSLoad'       onclick='ButLoadClick()'>Charge GPX</button>
+    </div>
+
+    <!----- PARTIE Titre ----->
+    <div id='titreSuivi' style='font-size: x-large;'>
+      <span id='parTitre'><b>GPX.Suivi</b> de Thierry </span>
+      <span id='divAvancement'></span>
+    </div>
+
+    <!----- PARTIE Progression ----->
+    <div id='divProgression'>
+      <div id='progression-container'>
+        <img src='imgLastPosition.svg' id='imgPosition' alt='Position'/>
+        <span id='txtHeurePosition'></span>
+        <div id='progression-track'></div>
+        <div id='progression-fill'></div>
+      </div>
+      <div id="progression-labels">
+        <span id='spanDistanceMin'>0km</span><span id='spanDistanceMax'>1km</span>
+      </div>
+      <div id="divDistances">&nbsp;</div>
+    </div>
+
+    <!----- PARTIE Map ----->
+    <button id='btnRefresh' onclick='Rafraichir()'>Rafraichir</button>
+    <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' />
+    <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
+    <script src='map.js'> </script>
+    <link rel='stylesheet' type='text/css' href='map.css'>
+    <div id='map'>
+    </div>
+  </div>
+</body>
+</html>
+
