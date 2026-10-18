@@ -1,3 +1,12 @@
+/*================================================================================================*/
+/*
+  Il y a deux parties :
+  #divTopContainer pour la partie haute de l'écran
+  #divBottomContainer pour la partie basse de l'écran
+
+  La partie basse sert à trouver la dimension pour la partie haute
+/*================================================================================================*/
+
 /* Taille générale du texte */
 body
 {
@@ -17,11 +26,12 @@ body
   font-size: 1.2em; /* 20% plus grand que la normale */
 }
 
-/*------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/* Partie Haute de l'écran                                                                        */
+/*================================================================================================*/
 
-/* Le conteneur principal de la page */
-/* hormis le divBottomContainer servant au redimensionnement */
-#divPageContainer
+/* Conteneur haut de page */
+#divTopContainer
 {
   position: absolute;
   top: 5px;
@@ -33,6 +43,70 @@ body
   flex-direction: column;
 }
 
+#spanTitre
+{
+  background-color: #FFF;
+  font-weight: bold;
+}
+
+/*----- Admin ------------------------------------------------------------------------------------*/
+
+/* Container pour l'identification de l'admin */
+#divAdmin
+{
+  display: none;
+  margin-top: 20px;
+}
+
+/* Texte sur les informations de connexion */
+#txtAdmin
+{
+  margin-left: 10px;
+}
+
+/* Position du titre de la zone de saisie */
+.classSaisieTitre
+{
+  width: 100%;
+  margin-left: 10px;
+  margin-bottom: 2px;
+  font-weight: bold;
+}
+
+/* Position du texte de la zone de saisie */
+.classSaisieTexte
+{
+  width: 90%;
+  max-width: 500px;
+  margin-left: 10px;
+}
+
+/* Bouton valider les informations de connexion */
+#butAdminValider
+{
+  margin-left: 10px;
+}
+
+#txtValiderErreur
+{
+  margin-left: 10px;
+  color: red;
+}
+
+/*----- Chargement -------------------------------------------------------------------------------*/
+
+/* Container pour le chargement*/
+#divChargement
+{
+  display: none;
+  font-style: italic;
+  border: 1px solid #FFF;
+  box-sizing: border-box;
+  padding-bottom: 20px;
+}
+
+/*----- Avancement progression -------------------------------------------------------------------*/
+
 /* Pourcentage de l'avancement */
 #divAvancement
 {
@@ -41,15 +115,18 @@ body
   font-weight: bold;
   padding-left: 10px;
   padding-right: 10px;
+  padding-bottom: 2px;
   border-radius: 10px;
   opacity: 0;
-  width: 60px;;
+  width: 60px;
 }
 
 /* Conteneur pour la progression */
 #divProgression
 {
-  border: #CCC;
+  display: none;
+  border: 0px solid #FFF; /* 0 pour le rendre transparent */
+  box-sizing: border-box;
 }
 
 /* Conteneur global de la barre */
@@ -62,7 +139,6 @@ body
   margin-right: 13px;
   margin-top: 65px;
 }
-
 
 /* Affichage de la date */
 #txtHeurePosition
@@ -79,11 +155,6 @@ body
   opacity: 0;
   text-align: center;
   padding: 3px;
-}
-
-/* Conteneur pour le curseur déplacement randonneur */
-#spanDeplacementCurseur
-{
 }
 
 /* L'icône du randonneur */
@@ -152,6 +223,8 @@ body
   margin-bottom: 10px;
 }
 
+/*----- Carte ------------------------------------------------------------------------------------*/
+
 /* Boutons pour la carte */
 .classBoutonsCarte
 {
@@ -183,6 +256,7 @@ body
   margin: 0px;
 }
 
+/* Radiobuttons pour pouvoir les centrer */
 #menuChoixCarte input[type="radio"]
 {
   vertical-align: middle;
@@ -199,7 +273,9 @@ body
 }
 
 
-/*------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/* Partie basse de l'écran                                                                        */
+/*================================================================================================*/
 
 /* Container Bas de page */
 #divBottomContainer
@@ -216,7 +292,7 @@ body
   margin-right: 0px;
   margin-top: 0px;
   margin-bottom: 0px;
-  width: 100%;
+  display: none;
 }
 
 /* Texte bas de page */

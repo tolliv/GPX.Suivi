@@ -1,6 +1,9 @@
-//--------------------------------------------------------------------------------------------------
+"http://localhost:63342/GPX.Suivi/index.html?_ijt=gjjjh6dqg8ehsrto5l455a64np&_ij_reload=RELOAD_ON_SAVE&usr=1768976714&url=https://mgogbhqpbqqxqhxyiwwy.supabase.co/rest/v1/table&key=sb_publishable_6uC_TPJTNLGmA3w1e2ZyXw_YgkaxjAM"
+"https://tolliv.github.io/GPX.Suivi/index.html?usr=1768976714&url=https://mgogbhqpbqqxqhxyiwwy.supabase.co/rest/v1/table&key=sb_publishable_6uC_TPJTNLGmA3w1e2ZyXw_YgkaxjAM"
+//==================================================================================================
 // Fichier main
-//--------------------------------------------------------------------------------------------------
+// Tag 2610.18
+//==================================================================================================
 var gItineraire = [];
 var gPositions = [];
 var gDistanceTotaleItineraire = 0;
@@ -19,15 +22,15 @@ document.addEventListener('DOMContentLoaded', function()
 //----- Observer sur le redimmensionnement -----
 const observer = new ResizeObserver(() =>
 {
-  // Redimensionnement de divPageContainer
+  // Redimensionnement de divTopContainer
   const heightBottom = pid('divBottomContainer').offsetHeight;
-  pid('divPageContainer').style.bottom = (heightBottom+1) + "px";
+  pid('divTopContainer').style.bottom = (heightBottom+1) + "px";
 
   // On peut afficher la carte maintenant
   if (gMapInitialized == false)
   {
     gMapInitialized = true;
-    AfficheCarte();
+
     Run();
   }
 });
@@ -175,12 +178,192 @@ function parseGpxToCoords(xmlContent)
   return{length:lNb, data:coords};
 }
 
+
 //--------------------------------------------------------------------------------------------------
-// Démarrage de l'affichage du suivi
+// Détection mode Admin ou Famille
 //--------------------------------------------------------------------------------------------------
 async function Run()
 {
+  let usrParam = "";
+  let keyParam = "";
+  let urlParam = "";
+
+  // Récupération paramètres ligne d'adresse
+  const queryString = window.location.search;
+  const lineParams = new URLSearchParams(queryString);
+
+  // Vérification si les paramètres existent et sont valides
+  // USER
+  if (lineParams.has("usr"))
+  {
+    usrParam = lineParams.get("usr");
+    if ( (usrParam == "1768976714") || (usrParam == "1785819725") )
+      USER = usrParam;
+  }
+
+  // URL
+  if (lineParams.has("url"))
+  {
+    urlParam = lineParams.get("url");
+    if (urlParam.includes('https:'))
+      API_URL = urlParam;
+  }
+
+  // KEY
+  if (lineParams.has("key"))
+  {
+    keyParam = lineParams.get("key");
+    if (keyParam.includes('sb_publishable'))
+      API_KEY = keyParam;
+  }
+
+  // Si tous les paramètres sont valides
+  // Mode Famille directement sinon on permet le choix du mode
+  if ( (USER != "?") && (API_URL != "?") && (API_KEY != "?") )
+    ModeCommun();
+  else
+    ChoixDuMode();
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// Passage en mode Choix du mode
+//--------------------------------------------------------------------------------------------------
+async function ChoixDuMode()
+{
+  var txtUsrLocal = "";
+  var txtUrlLocal = "";
+  var txtKeyLocal = "";
+
+  console.log("Choix du mode");
+
+  // Lecture du local storage
+  if (localStorage.getItem('GPXSuivi_usr') != null)
+    txtUsrLocal = localStorage.getItem('GPXSuivi_usr');
+  if (localStorage.getItem('GPXSuivi_url') != null)
+    txtUrlLocal = localStorage.getItem('GPXSuivi_url');
+  if (localStorage.getItem('GPXSuivi_key') != null)
+    txtKeyLocal = localStorage.getItem('GPXSuivi_key');
+
+  // Les valeurs sont données par la ligne d'adresse si existantes
+  pid('txtUsr').value = txtUsrLocal;
+  pid('txtUrl').value = txtUrlLocal;
+  pid('txtKey').value = txtKeyLocal;
+  pid('txtAdmin').innerHTML  = "Entrer les informations de connexion.";
+  pid('divAdmin').style.display = 'block';
+}
+
+//--------------------------------------------------------------------------------------------------
+// Valider les informations de connexion
+//--------------------------------------------------------------------------------------------------
+function ValiderAdmin()
+{
+  let flagOk = false;
+
+  USER = pid('txtUsr').value;
+  API_URL = pid('txtUrl').value;
+  API_KEY = pid('txtKey').value;
+
+  if ((USER != "") && (USER != "?")
+   && (API_URL != "") && (API_URL != "?")
+   && (API_KEY != "") && (API_KEY != "?"))
+  {
+    if (VerifieAccesBase() == "OK")
+      flagOk = true;
+  }
+
+  // Si on peut accéder à la base de données
+  if (flagOk == true)
+  {
+    // Sauvegarde dans le local storage
+    localStorage.setItem('GPXSuivi_usr', USER);
+    localStorage.setItem('GPXSuivi_url', API_URL);
+    localStorage.setItem('GPXSuivi_key', API_KEY);
+
+    // Lancement du mode commun
+    pid('divAdmin').style.display = 'none';
+    ModeCommun();
+  }
+
+  // Problème d'accès
+  else
+  {
+    pid('txtValiderErreur').innerHTML = "Erreur d'accès à la base de données";
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+// Vérifie l'accès à la base de données
+//--------------------------------------------------------------------------------------------------
+function VerifieAccesBase()
+{
+  return("OK");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Démarrage du mode commun
+// Le mode Admin a plus d'icones que le mode Famille
+//--------------------------------------------------------------------------------------------------
+async function ModeCommun()
+{
+
+  // Chargement
+  var lRetChargement = "";
+  lRetChargement = await ChargementItineraire();
+  console.log("Chargement statut : " + lRetChargement);
+
+  // Chargement OK
+  if (lRetChargement == "OK")
+  {
+    if (gItineraire.length > 0)
+    {
+      pid('divChargement').style.display = 'none';
+      pid('divProgression').style.display = 'block';
+      pid('divButtons').style.display = 'block';
+      pid('map').style.display = 'block';
+      pid('divBottomContainer').style.display = 'block';
+      AfficheCarte();
+      CreationMarqueurs('T');
+      SimulationPoints();  // Pour le DEBUG
+      AfficheRattachements();
+      AfficheItineraire();
+      AffichePositions();
+      CalculeDistanceTotaleEtParcourue();
+      AfficheProgression();
+    }
+    else
+    {
+      console.log("Aucun point");
+    }
+  }
+  else
+  {
+    console.log("Erreur chargement");
+  }
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// Chargement de l'itinéraire
+// Retourne un status
+//--------------------------------------------------------------------------------------------------
+async function ChargementItineraire()
+{
+  var lRet = "";
+
+  // Nom du randonneur
+  pid('spanNom').innerHTML = "Thierry";
+  pid('spanNom').style.opacity = '1';
+
+  var htmlInt = "";
+  var longueurItineraire = 0;
+  var longueurPrev = 0;
+
+  pid('divChargement').style.display = 'block';
+
   console.log("Chargement itinéraire..");
+  htmlInt = "<b>Chargement des informations</b><br>";
+  pid('divChargement').innerHTML = htmlInt;
 
   // Compte le nombre de points avant de les charger
   const lCmd = "user=eq." + USER
@@ -190,8 +373,12 @@ async function Run()
   var { status, count } = await SupabaseCount(lCmd);
   if (status == "OK")
   {
-    console.log("Nombre de points : " + count);
-    if (count > 0)
+    longueurItineraire = count;
+    console.log("Nombre de points : " + longueurItineraire);
+    htmlInt += "Itinéraire 1 (" + longueurItineraire + " points) : ";
+    pid('divChargement').innerHTML = htmlInt + "0%";
+
+    if (longueurItineraire > 0)
     {
       gItineraire = [];
       let offset = 0;
@@ -219,6 +406,12 @@ async function Run()
           {
             gItineraire = gItineraire.concat(data);
             console.log("Chargés : " + gItineraire.length + " points...");
+            for (let x = longueurPrev; x < gItineraire.length; x++)
+            {
+              pid('divChargement').innerHTML = htmlInt + "<b>"+ Math.round(100*x/longueurItineraire) + "%</b>";
+            }
+            await sleep(50);
+            longueurPrev = gItineraire.length;
 
             // Sinon, on continue avec la prochaine page
             offset += batchSize;
@@ -232,27 +425,16 @@ async function Run()
 
       // Fin du chargement
       if (status !== "OK")
-      {
         console.log(status);
-      }
       else
-      {
         console.log("OK " + gItineraire.length + " points");
-        if (gItineraire.length > 0)
-        {
-          CreationMarqueurs('T');
-          SimulationPoints();  // Pour le DEBUG
-          AfficheRattachements();
-          AfficheItineraire();
-          AffichePositions();
-          CalculeDistanceTotaleEtParcourue();
-          AfficheProgression();
-        }
-      }
+      lRet = status;
     }
   }
+  else
+    lRet = status;
+  return(lRet);
 }
-
 
 //--------------------------------------------------------------------------------------------------
 // Activation/Désactivation d'unbouton
@@ -311,7 +493,6 @@ async function AfficheProgression()
       break;
     await sleep(100);
   }
-  console.log("count=", count);
 
   // Texte date et heure au-dessus
   const lDate = "<b>Aujourd'hui</b><br>18h15";

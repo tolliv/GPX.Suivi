@@ -1,11 +1,12 @@
 //==================================================================================================
 // Gestion des requêtes pour Supabase
+// Tag 2610.18
 //==================================================================================================
 
 // URL de votre application web Google Apps Script
-const API_URL = 'https://mgogbhqpbqqxqhxyiwwy.supabase.co/rest/v1/table';
-const API_KEY = 'sb_publishable_6uC_TPJTNLGmA3w1e2ZyXw_YgkaxjAM';
-const USER    = 1768976714; // User 0
+var API_URL = "?";
+var API_KEY = "?";
+var USER    = "?";
 
 //--------------------------------------------------------------------------------------------------
 // Date au format Supabase compacté par tolliv
