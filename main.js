@@ -8,12 +8,28 @@ var gDistanceParcourue = 0;
 var gCurrentZoom = 5;
 var gCurrentCenter = [46.5397, 2.4303];
 var gRafraichirEnCours = false;
+var gMapInitialized = false;
 
-//----- Gestionnaires d'événements DOM -----
+//----- Démarrage de l'application -----
 document.addEventListener('DOMContentLoaded', function()
 {
-  AfficheCarte();
-  Run();
+  observer.observe(pid('divBottomContainer'));
+});
+
+//----- Observer sur le redimmensionnement -----
+const observer = new ResizeObserver(() =>
+{
+  // Redimensionnement de divPageContainer
+  const heightBottom = pid('divBottomContainer').offsetHeight;
+  pid('divPageContainer').style.bottom = (heightBottom+1) + "px";
+
+  // On peut afficher la carte maintenant
+  if (gMapInitialized == false)
+  {
+    gMapInitialized = true;
+    AfficheCarte();
+    Run();
+  }
 });
 
 //--------------------------------------------------------------------------------------------------
@@ -32,6 +48,26 @@ function pid(id)
 //--------------------------------------------------------------------------------------------------
 const sleep = ms => new Promise(res => setTimeout(res, ms));
 
+
+//--------------------------------------------------------------------------------------------------
+// Toggle plein écran
+//--------------------------------------------------------------------------------------------------
+function toggleFullScreen()
+{
+  if (!document.fullscreenElement)
+  {
+    // On demande le plein écran pour tout le document
+    document.documentElement.requestFullscreen().catch(err =>
+    {
+      console.error(`Erreur : ${err.message}`);
+    });
+  }
+  else
+  {
+    // On quitte le plein écran
+    document.exitFullscreen();
+  }
+}
 
 //--------------------------------------------------------------------------------------------------
 // Charge un fichier GPX, l'analyse et extrait les coordonnées lat,lon,alt
@@ -204,6 +240,7 @@ async function Run()
         console.log("OK " + gItineraire.length + " points");
         if (gItineraire.length > 0)
         {
+          CreationMarqueurs('T');
           SimulationPoints();  // Pour le DEBUG
           AfficheRattachements();
           AfficheItineraire();
@@ -216,10 +253,26 @@ async function Run()
   }
 }
 
+
+//--------------------------------------------------------------------------------------------------
+// Activation/Désactivation d'unbouton
+// Blanc sur fond gris
+//--------------------------------------------------------------------------------------------------
+function BoutonEtat(bouton, etat)
+{
+  const but = pid(bouton);
+  if (etat == 'actif')
+    but.style.backgroundColor = '#444'  ,  but.style.color = '#FFF';
+
+  if (etat == 'inactif')
+    but.style.backgroundColor = '#FFF'  ,  but.style.color = '#000';
+}
+
+
 //--------------------------------------------------------------------------------------------------
 // Met à jour la position du randonneur sur la barre
 //--------------------------------------------------------------------------------------------------
-function AfficheProgression()
+async function AfficheProgression()
 {
   // Distances
   const lParcourue = Math.floor(gDistanceParcourue*10)/10;
@@ -235,41 +288,62 @@ function AfficheProgression()
   pid('progression-fill').style.width = p + '%';
 
   // Position sur la barre de progression
-  pid('imgPosition').style.opacity = '100';
-  pid('imgPosition').style.left = p + '%';
+  pid('imgCurseur').style.opacity = '1';
+  pid('imgCurseur').style.left = p + '%';
 
-  // On attend la fin de déplacement de la position pour afficher la date
-  pid('imgPosition').addEventListener('transitionend', () =>
+  // Si <> 0, On attend la fin de déplacement de la position pour afficher la date
+  var flagFini = false;
+  if (p > 0)
   {
-    // Texte date et heure au-dessus
-    const lDate = "<b>Aujourd'hui</b><br>18h15";
-    pid('txtHeurePosition').innerHTML = lDate;
+    pid('imgCurseur').addEventListener('transitionend', () =>
+    {
+      flagFini = true;
+    }, { once: true });
+  }
+  else
+    flagFini = true;
 
-    const containerWidth = pid('progression-container').offsetWidth;
-    const minPx = 45;
-    const maxPx = containerWidth-45;
+  // Attend la fin de l'animation s'il y en a, maximum 1.5 seconde
+  var count = 0;
+  for (count = 0; count < 15; count++)
+  {
+    if (flagFini == true)
+      break;
+    await sleep(100);
+  }
+  console.log("count=", count);
 
-    // Conversion du pourcentage p en pixels
-    let targetPx = (p / 100) * containerWidth;
+  // Texte date et heure au-dessus
+  const lDate = "<b>Aujourd'hui</b><br>18h15";
+  pid('txtHeurePosition').innerHTML = lDate;
 
-    // On contraint la position (Clamp)
-    if (targetPx < minPx) targetPx = minPx;
-    if (targetPx > maxPx) targetPx = maxPx;
+  const containerWidth = pid('progression-container').offsetWidth;
+  const minPx = 42;
+  const maxPx = containerWidth-42;
 
-    // On applique la position en pixels
-    pid('txtHeurePosition').style.left = targetPx + 'px';
-    pid('txtHeurePosition').style.opacity = '100';
+  // Conversion du pourcentage p en pixels
+  let targetPx = (p / 100) * containerWidth;
 
-    pid('divDistances').innerHTML  = "Parcouru : <span class='text-large'><b>" + lParcourue + "</b></span> km";
-    pid('divDistances').innerHTML += " -  Restant : <span class='text-large'><b>" + lRestant + "</b></span> km";
+  // On contraint la position (Clamp)
+  if (targetPx < minPx) targetPx = minPx;
+  if (targetPx > maxPx) targetPx = maxPx;
 
-    // lPourcentage
-    pid('divAvancement').innerHTML = p + "<small>%</small>";
-    pid('divAvancement').style.opacity = '100';
+  // On applique la position en pixels
+  pid('txtHeurePosition').style.left = targetPx + 'px';
+  pid('txtHeurePosition').style.opacity = '1';
 
-    // Fin d'un éventuel rafraichissement en cours
-    gRafraichirEnCours = false;
-  }, { once: true });
+  pid('divDistances').innerHTML  = "Parcouru : <span class='classTexteLarge'><b>" + lParcourue + "</b></span> km";
+  pid('divDistances').innerHTML += " -  Restant : <span class='classTexteLarge'><b>" + lRestant + "</b></span> km";
+
+  // lPourcentage
+  pid('divAvancement').innerHTML = p + "<small>%</small>";
+  pid('divAvancement').style.opacity = '1';
+
+  // Fin d'un éventuel rafraichissement en cours
+  gRafraichirEnCours = false;
+
+  // Bouton désactivé
+  BoutonEtat('butRafraichir', 'inactif');
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -339,8 +413,22 @@ function AfficheRattachements()
     indexLePlusProche = -1;
     indexPosition++;
 
+    //----- Définition des limites de recherche -----
+    let lIndexStart, lIndexStop;
+    // Cas début de la rando (entre le début et la moitié de l'itinéraire)
+    if (pos.poi == 1)
+      lIndexStart = 0  ,  lIndexStop = gItineraire.length/2;
+
+    // Cas fin de la rando (entre la moitié de l'itinéraire et la fin)
+    else if (pos.poi == 4)
+      lIndexStart = gItineraire.length/2  ,  lIndexStop = gItineraire.length;
+
+    // Cas des autres points (tout l'itinéraire)
+    else
+      lIndexStart = 0  ,   lIndexStop = gItineraire.length;
+
     // On cherche dans tout l'itinéraire le point le plus proche de la position actuelle
-    for (let i = 0; i < gItineraire.length; i++)
+    for (let i = lIndexStart; i < lIndexStop; i++)
     {
       const d = calculeDistanceEntrePoints(pos, gItineraire[i]);
       if (d < distanceMin)
@@ -368,17 +456,20 @@ async function Rafraichir()
   {
     gRafraichirEnCours = true;
 
+    // Bouton activé
+    BoutonEtat('butRafraichir', 'actif');
+
     // Mémorise vue actuelle
     gCurrentZoom = map.getZoom();
     gCurrentCenter = map.getCenter();
 
     // Remet les curseurs à 0 rapidement
     const backupTransitionBarre = pid('progression-fill').style.transition;
-    const backupTransitionImage = pid('imgPosition').style.transition;
+    const backupTransitionImage = pid('imgCurseur').style.transition;
     pid('progression-fill').style.transition = 'width 0s ease';
-    pid('imgPosition').style.transition = 'left 0s ease';
-    pid('imgPosition').style.left = '0%';
-    pid('imgPosition').style.opacity = '0';
+    pid('imgCurseur').style.transition = 'left 0s ease';
+    pid('imgCurseur').style.left = '0%';
+    pid('imgCurseur').style.opacity = '0';
 
     pid('txtHeurePosition').style.opacity = '0';
     pid('progression-fill').style.width = '0%';
@@ -398,7 +489,7 @@ async function Rafraichir()
     // Attente pour que tout soit effacé
     await sleep(300);
     pid('progression-fill').style.transition = backupTransitionBarre;
-    pid('imgPosition').style.transition = backupTransitionImage;
+    pid('imgCurseur').style.transition = backupTransitionImage;
 
     // Relire la base de données Position
     // TODO
@@ -411,8 +502,37 @@ async function Rafraichir()
   }
 }
 
-//==================================================================================================
 
+//--------------------------------------------------------------------------------------------------
+// Choix du fond de carte
+//--------------------------------------------------------------------------------------------------
+function ChoixCarte()
+{
+  const menu = pid('menuChoixCarte');
+  if (menu.style.display === 'none' || menu.style.display === '')
+  {
+    menu.style.display = 'block';
+    BoutonEtat('butChoixCarte', 'actif');
+
+    // Position du bouton
+    const rect = pid('butChoixCarte').getBoundingClientRect();
+    menu.style.top = rect.bottom + 6 + 'px';
+    menu.style.left = rect.left + 'px';
+
+    // Si le menu dépasse à droite de l'écran
+    const menuRect = menu.getBoundingClientRect();
+    if (menuRect.right > window.innerWidth)
+        menu.style.left = (rect.right - menuRect.width) + 'px';
+  }
+  else
+  {
+    menu.style.display = 'none';
+    BoutonEtat('butChoixCarte', 'inactif');
+  }
+}
+
+
+//==================================================================================================
 
 
 //--------------------------------------------------------------------------------------------------
@@ -434,7 +554,7 @@ function SimulationPoints()
 
       // POI
                    {lLigne.poi = 2; }
-      if (nb == 1) {lLigne.poi = 1; lLigne.lat += 0.005;}
+      if (nb == 1) {lLigne.poi = 1; lLigne.lat += 0.000; lLigne.lon -= 0.005;}
       if (nb == 6) {lLigne.poi = 3; lLigne.lat += 0.005;}
 
       msg  = "<b>15/10/2026 à " + (10+nb).toString() + "h15</b><br>";

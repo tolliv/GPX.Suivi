@@ -11,7 +11,7 @@
   <link rel='stylesheet' type='text/css' href='main.css'>
   <script src='main.js'> </script>
   <script src='driverSupabase.js'> </script>
-  <div class="main-container">
+  <div id='divPageContainer'>
     <div id='divAdmin' style='display: none'>
       <b>Admin</b><br>
       <button id='btnSTest'       onclick='ButTestClick()'>T</button>
@@ -31,7 +31,7 @@
     <!----- PARTIE Progression ----->
     <div id='divProgression'>
       <div id='progression-container'>
-        <img src='imgLastPosition.svg' id='imgPosition' alt='Position'/>
+        <span id='spanDeplacementCurseur'><img id='imgCurseur'></span>
         <span id='txtHeurePosition'></span>
         <div id='progression-track'></div>
         <div id='progression-fill'></div>
@@ -43,7 +43,28 @@
     </div>
 
     <!----- PARTIE Map ----->
-    <button id='btnRefresh' onclick='Rafraichir()'>Rafraichir</button>
+    <div id='divButtons'>
+      <button class='classBoutonsCarte' id='butRafraichir' onclick='Rafraichir()' title="Rafraichir les données">Rafraichir</button>
+      <button class='classBoutonsCarte' id='butChoixCarte' onclick='ChoixCarte()' title="Changer de carte">Carte</button>
+    </div>
+
+    <!-- Menu pour la carte -->
+    <!-- Menu pour la carte avec Radio Buttons -->
+    <div id="menuChoixCarte">
+      <label>
+        <input type="radio" class='classChoixCarte' id='idOsm' name="fondCarte" onclick="SelectionnerFond('osm')" checked>OpenStreetMap&nbsp;
+      </label><br>
+      <label>
+        <input type="radio" class='classChoixCarte' id='idTopo' name="fondCarte" onclick="SelectionnerFond('topo')">OpenTopMap
+      </label><br>
+      <label>
+        <input type="radio" class='classChoixCarte' id='idIgnPlan' name="fondCarte" onclick="SelectionnerFond('ignPlan')">IGN Plan
+      </label><br>
+      <label>
+        <input type="radio" class='classChoixCarte' id='idSatellite' name="fondCarte" onclick="SelectionnerFond('satellite')">Satellite
+      </label>
+    </div>
+
     <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' />
     <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
     <script src='map.js'> </script>
@@ -51,6 +72,19 @@
     <div id='map'>
     </div>
   </div>
+<div id='divBottomContainer'>
+  <span id='spanBottom' class='classTextePetit'>
+    <span><b>Légende</b>&nbsp;&nbsp;</span>
+    <img id='imgLegendeDebut'>
+    <span>&nbsp;Début&nbsp;&nbsp;&nbsp;</span>
+    <img id='imgLegendePosition'>
+    <span>&nbsp;Position&nbsp;&nbsp;&nbsp;</span>
+    <img id='imgLegendeBivouac'>
+    <span>&nbsp;Bivouac&nbsp;&nbsp;&nbsp;</span>
+    <img id='imgLegendeFin'>
+    <span>&nbsp;Fin</span>
+  </span>
+</div>
 </body>
 </html>
 

@@ -1,0 +1,3 @@
+- mode admin
+- paramètres ?user=..
+- vérifier bulle Aujourd'hui si 0 ou 34km

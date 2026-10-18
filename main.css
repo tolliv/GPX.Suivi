@@ -6,23 +6,31 @@ body
 }
 
 /* Taille de texte plus petite */
-.text-petit
+.classTextePetit
 {
-  font-size: 0.8em; /* 20% plus petit que la normale */
+  font-size: 0.9em; /* 10% plus petit que la normale */
 }
 
 /* Taille de texte plus grande */
-.text-large
+.classTexteLarge
 {
   font-size: 1.2em; /* 20% plus grand que la normale */
 }
 
-/* Le parent doit occuper toute la hauteur de l'écran */
-.main-container
+/*------------------------------------------------------------------------------------------------*/
+
+/* Le conteneur principal de la page */
+/* hormis le divBottomContainer servant au redimensionnement */
+#divPageContainer
 {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 0px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px);
 }
 
 /* Pourcentage de l'avancement */
@@ -50,8 +58,8 @@ body
   position: relative;
   display: flex;
   align-items: center;
-  margin-left: 10px;
-  margin-right: 10px;
+  margin-left: 13px;
+  margin-right: 13px;
   margin-top: 65px;
 }
 
@@ -73,13 +81,19 @@ body
   padding: 3px;
 }
 
+/* Conteneur pour le curseur déplacement randonneur */
+#spanDeplacementCurseur
+{
+}
+
 /* L'icône du randonneur */
-#imgPosition
+#imgCurseur
 {
   position: absolute;
   width: 24px;
   height: 24px;
   left: 0%;
+  top: -13px;
   transform: translateX(-50%);
   z-index: 3;
   opacity: 0;
@@ -87,7 +101,7 @@ body
   margin-bottom: 0px;
 }
 
-/* La ligne horizontale en pointillée*/
+/* La ligne horizontale en pointillée */
 #progression-track
 {
   position: absolute;
@@ -102,6 +116,8 @@ body
 #progression-fill
 {
   position: absolute;
+  left: 10px;
+  right: 10px;
   width: 0%;
   border-bottom: 4px solid #00F;
   radius: 4px;
@@ -120,14 +136,6 @@ body
   margin-bottom: 5px;
 }
 
-#spanDistanceMin
-{
-
-}
-#spanDistanceMax
-{
-}
-
 /* Distances */
 #divDistances
 {
@@ -144,12 +152,9 @@ body
   margin-bottom: 10px;
 }
 
-/* Bouton rafraichir */
-#btnRefresh
+/* Boutons pour la carte */
+.classBoutonsCarte
 {
-  position: absolute;
-  top: 189px;
-  left: 70px;
   height: 34px;
   border: 2px solid #AAA;
   background-color: #FFF;
@@ -158,6 +163,68 @@ body
   width: 80px;
   font-family: 'Verdana';
   font-size: 13px;
-  z-index: 1;
+  z-index: 2;
   box-shadow: none;
+  margin-bottom: 2px;
+  cursor: pointer;
+}
+
+/* Menu pour le choix de la carte */
+#menuChoixCarte
+{
+  display: none;
+  position: fixed;
+  background: #FFF;
+  border: 2px solid #AAA;
+  z-index: 1000; /* Au dessus de tout */
+  border-radius: 5px;
+  overflow: hidden;
+  padding: 5px;
+  margin: 0px;
+}
+
+#menuChoixCarte input[type="radio"]
+{
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+  left: -3px;
+}
+
+/* Texte du menu */
+.classChoixCarte
+{
+  margin-top: 6px;
+  margin-bottom: 5px;
+}
+
+
+/*------------------------------------------------------------------------------------------------*/
+
+/* Container Bas de page */
+#divBottomContainer
+{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background-color: #FFF;
+  border: 1px solid #FFF;
+  box-sizing: border-box;
+  margin-left: 0px;
+  margin-right: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  width: 100%;
+}
+
+/* Texte bas de page */
+#spanBottom
+{
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  margin-left: 5px;
+  margin-top: 2px;
 }
