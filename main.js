@@ -2,7 +2,7 @@
 "https://tolliv.github.io/GPX.Suivi/index.html?usr=1768976714&url=https://mgogbhqpbqqxqhxyiwwy.supabase.co/rest/v1/table&key=sb_publishable_6uC_TPJTNLGmA3w1e2ZyXw_YgkaxjAM"
 //==================================================================================================
 // Fichier main
-// Tag 2610.18
+// Tag 2610.18b
 //==================================================================================================
 var gItineraire = [];
 var gPositions = [];
