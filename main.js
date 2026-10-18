@@ -1,5 +1,3 @@
-"http://localhost:63342/GPX.Suivi/index.html?_ijt=gjjjh6dqg8ehsrto5l455a64np&_ij_reload=RELOAD_ON_SAVE&usr=1768976714&url=https://mgogbhqpbqqxqhxyiwwy.supabase.co/rest/v1/table&key=sb_publishable_6uC_TPJTNLGmA3w1e2ZyXw_YgkaxjAM"
-"https://tolliv.github.io/GPX.Suivi/index.html?usr=1768976714&url=https://mgogbhqpbqqxqhxyiwwy.supabase.co/rest/v1/table&key=sb_publishable_6uC_TPJTNLGmA3w1e2ZyXw_YgkaxjAM"
 //==================================================================================================
 // Fichier main
 // Tag 2610.18b
