@@ -711,6 +711,126 @@ function ChoixCarte()
 }
 
 
+//--------------------------------------------------------------------------------------------------
+// Partager l'adresse du site
+//--------------------------------------------------------------------------------------------------
+function Partager()
+{
+  // Si éteint, on l'allume
+  if (pid('divPartageManuel').style.display != 'block')
+  {
+    // Position du bouton partager
+    const rect = pid('butPartager').getBoundingClientRect();
+    pid('divPartageManuel').style.top = rect.bottom + 6 + 'px';
+    pid('divPartageManuel').style.left = rect.left + 'px';
+
+    // Si le menu dépasse à droite de l'écran
+    const menuRect = pid('divPartageManuel').getBoundingClientRect();
+    if (menuRect.right > window.innerWidth)
+        pid('divPartageManuel').style.left = (rect.right - menuRect.width) + 'px';
+
+    const url = "https://tolliv.github.io/GPX.Suivi/index.html?"
+              + "usr=" + USER
+              + "&url=" + API_URL
+              + "&key=" + API_KEY;
+
+    pid('txtACopier').innerHTML = "Copier dans le presse papier :\n" + url;
+
+    pid('divPartageManuel').style.display = 'block';
+    BoutonEtat('butPartager', 'actif');
+  }
+
+  // On l'éteint
+  else
+  {
+    BoutonEtat('butPartager', 'inactif');
+    pid('divPartageManuel').style.display = 'none';
+  }
+}
+
+function Partager2()
+{
+  const msg = "Suivez mon parcours sur GPX.Suivi :";
+  const texte = "https://tolliv.github.io/GPX.Suivi/index.html?"
+            + "usr=" + USER
+            + "&url=" + API_URL
+            + "&key=" + API_KEY;
+
+  BoutonEtat('butPartager', 'actif');
+  setTimeout(() => {
+    BoutonEtat('butPartager', 'inactif');
+  }, 500);
+
+  if (navigator.share)
+  {
+    navigator.share(
+    {
+      title: "GPX.Suivi",
+      text: msg,
+      url: texte
+    })
+    .then(() => console.log("Partage réussi"))
+    .catch((error) => console.log("Erreur de partage", error));
+  }
+  else
+  {
+    // On crée une simple boîte de dialogue avec prompt (natif et rapide)
+    // Ou on peut utiliser une zone de texte dédiée dans le HTML
+    // Utilisation du presse-papier si disponible
+    if (navigator.clipboard)
+    {
+      navigator.clipboard.writeText(url).then(() =>
+      {
+        alert("Lien copié dans le presse-papier !\n\n" + texte);
+      }).catch(() =>
+      {
+        // Si la copie automatique échoue, on affiche le lien pour copie manuelle
+        window.prompt(msg, texte);
+      });
+    } else
+    {
+      window.prompt(msg, texte);
+    }
+  }
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// Affiche une alternative si le partage natif échoue
+//--------------------------------------------------------------------------------------------------
+function CopierLien()
+{
+  const el = pid('txtACopier');
+  el.select();
+  el.setSelectionRange(0, 99999); // Pour mobile
+  document.execCommand("copy");
+  alert("Lien copié !");
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// Affiche une alternative si le partage natif échoue
+//--------------------------------------------------------------------------------------------------
+function AfficherFallbackPartage(texte)
+{
+  // On crée une simple boîte de dialogue avec prompt (natif et rapide)
+  // Ou on peut utiliser une zone de texte dédiée dans le HTML
+  const msg = "Copiez ce lien pour le partager :";
+
+  // Utilisation du presse-papier si disponible
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      alert("Lien copié dans le presse-papier !\n\n" + url);
+    }).catch(() => {
+      // Si la copie automatique échoue, on affiche le lien pour copie manuelle
+      window.prompt(msg, url);
+    });
+  } else {
+    window.prompt(msg, url);
+  }
+}
+
+
 //==================================================================================================
 
 

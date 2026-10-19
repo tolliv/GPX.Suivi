@@ -272,6 +272,35 @@ body
   margin-bottom: 5px;
 }
 
+/*----- Partager ------------------------------------------------------------------------------------*/
+
+/* Fenêtre de partage du lien */
+#divPartageManuel
+{
+  display: none;
+  position: fixed;
+  background: #FFF;
+  border: 2px solid #AAA;
+  z-index: 1000; /* Au dessus de tout */
+  border-radius: 5px;
+  overflow: hidden;
+  padding: 5px;
+  margin: 0px;
+  width: 180px;
+}
+
+/* Texte du lien */
+#txtACopier
+{
+  opacity: 0%;
+  height: 0px;
+}
+
+#butCopierLien
+{
+  margin-top: 4px;
+  padding: 5px;
+}
 
 /*================================================================================================*/
 /* Partie basse de l'écran                                                                        */
