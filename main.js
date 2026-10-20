@@ -10,6 +10,7 @@ var gCurrentZoom = 5;
 var gCurrentCenter = [46.5397, 2.4303];
 var gRafraichirEnCours = false;
 var gMapInitialized = false;
+var gModeAdmin = false;
 
 //----- Démarrage de l'application -----
 document.addEventListener('DOMContentLoaded', function()
@@ -233,8 +234,6 @@ async function ChoixDuMode()
   var txtUrlLocal = "";
   var txtKeyLocal = "";
 
-  console.log("Choix du mode");
-
   // Lecture du local storage
   if (localStorage.getItem('GPXSuivi_usr') != null)
     txtUsrLocal = localStorage.getItem('GPXSuivi_usr');
@@ -254,7 +253,7 @@ async function ChoixDuMode()
 //--------------------------------------------------------------------------------------------------
 // Valider les informations de connexion
 //--------------------------------------------------------------------------------------------------
-function ValiderAdmin()
+async function ValiderAdmin()
 {
   let flagOk = false;
 
@@ -266,7 +265,7 @@ function ValiderAdmin()
    && (API_URL != "") && (API_URL != "?")
    && (API_KEY != "") && (API_KEY != "?"))
   {
-    if (VerifieAccesBase() == "OK")
+    if (await VerifieAccesBase() == "OK")
       flagOk = true;
   }
 
@@ -278,24 +277,79 @@ function ValiderAdmin()
     localStorage.setItem('GPXSuivi_url', API_URL);
     localStorage.setItem('GPXSuivi_key', API_KEY);
 
-    // Lancement du mode commun
+    // Active le mode admin
     pid('divAdmin').style.display = 'none';
+    gModeAdmin = true;
     ModeCommun();
-  }
-
-  // Problème d'accès
-  else
-  {
-    pid('txtValiderErreur').innerHTML = "Erreur d'accès à la base de données";
   }
 }
 
 //--------------------------------------------------------------------------------------------------
 // Vérifie l'accès à la base de données
 //--------------------------------------------------------------------------------------------------
-function VerifieAccesBase()
+async function VerifieAccesBase()
 {
-  return("OK");
+  pid('txtValiderErreur').innerHTML = "";
+  await sleep(100);
+  pid('txtValiderErreur').innerHTML = "<b>Connexion à la base de données : </b>";
+  let status = await SupabaseTestConnexion();
+
+  // Aller ligne suivante si erreur (car texte long)
+  if (status != "OK")
+    status = "<br>" + status;
+  pid('txtValiderErreur').innerHTML += status;
+  await sleep(500);
+  return(status);
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// Prépare l'IHM pour passer en Admin (visibilité des boutons)
+//--------------------------------------------------------------------------------------------------
+function PasseAdminOn()
+{
+  pid('divBoutonsAdmin').style.display = 'block';
+  pid('divBoutonsAdmin').style.height = '36px';
+}
+function PasseAdminOff()
+{
+  pid('divBoutonsAdmin').style.display = 'none';
+  pid('divBoutonsAdmin').style.height = '0px';
+}
+
+//--------------------------------------------------------------------------------------------------
+// Panneau des itinéraires
+//--------------------------------------------------------------------------------------------------
+function ListeItineraires()
+{
+  const but = pid('butItineraires');
+  const pan = pid('panItineraires');
+
+  if (but.state != 'actif')
+  {
+    but.state = 'actif';
+    BoutonEtat('butItineraires', but.state);
+
+    const rect = pid('map').getBoundingClientRect();
+    pan.style.display = 'block';
+    pan.style.top = rect.top + 3 + 'px';
+    pan.style.left = rect.left + 1 + 'px';
+    pan.style.width = '250px';
+  }
+  else
+  {
+    but.state = 'inactif';
+    BoutonEtat('butItineraires', but.state);
+    pan.style.display = 'none';
+  }
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// Donne des informations sur l'application
+//--------------------------------------------------------------------------------------------------
+function AdminInformations()
+{
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -304,7 +358,6 @@ function VerifieAccesBase()
 //--------------------------------------------------------------------------------------------------
 async function ModeCommun()
 {
-
   // Chargement
   var lRetChargement = "";
   lRetChargement = await ChargementItineraire();
@@ -328,6 +381,8 @@ async function ModeCommun()
       AffichePositions();
       CalculeDistanceTotaleEtParcourue();
       AfficheProgression();
+      if (gModeAdmin)
+        PasseAdminOn();
     }
     else
     {
@@ -716,40 +771,6 @@ function ChoixCarte()
 //--------------------------------------------------------------------------------------------------
 function Partager()
 {
-  // Si éteint, on l'allume
-  if (pid('divPartageManuel').style.display != 'block')
-  {
-    // Position du bouton partager
-    const rect = pid('butPartager').getBoundingClientRect();
-    pid('divPartageManuel').style.top = rect.bottom + 6 + 'px';
-    pid('divPartageManuel').style.left = rect.left + 'px';
-
-    // Si le menu dépasse à droite de l'écran
-    const menuRect = pid('divPartageManuel').getBoundingClientRect();
-    if (menuRect.right > window.innerWidth)
-        pid('divPartageManuel').style.left = (rect.right - menuRect.width) + 'px';
-
-    const url = "https://tolliv.github.io/GPX.Suivi/index.html?"
-              + "usr=" + USER
-              + "&url=" + API_URL
-              + "&key=" + API_KEY;
-
-    pid('txtACopier').innerHTML = "Copier dans le presse papier :\n" + url;
-
-    pid('divPartageManuel').style.display = 'block';
-    BoutonEtat('butPartager', 'actif');
-  }
-
-  // On l'éteint
-  else
-  {
-    BoutonEtat('butPartager', 'inactif');
-    pid('divPartageManuel').style.display = 'none';
-  }
-}
-
-function Partager2()
-{
   const msg = "Suivez mon parcours sur GPX.Suivi :";
   const texte = "https://tolliv.github.io/GPX.Suivi/index.html?"
             + "usr=" + USER
@@ -798,19 +819,6 @@ function Partager2()
 //--------------------------------------------------------------------------------------------------
 // Affiche une alternative si le partage natif échoue
 //--------------------------------------------------------------------------------------------------
-function CopierLien()
-{
-  const el = pid('txtACopier');
-  el.select();
-  el.setSelectionRange(0, 99999); // Pour mobile
-  document.execCommand("copy");
-  alert("Lien copié !");
-}
-
-
-//--------------------------------------------------------------------------------------------------
-// Affiche une alternative si le partage natif échoue
-//--------------------------------------------------------------------------------------------------
 function AfficherFallbackPartage(texte)
 {
   // On crée une simple boîte de dialogue avec prompt (natif et rapide)
@@ -831,7 +839,10 @@ function AfficherFallbackPartage(texte)
 }
 
 
+
+
 //==================================================================================================
+
 
 
 //--------------------------------------------------------------------------------------------------

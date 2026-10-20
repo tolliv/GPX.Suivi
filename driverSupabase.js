@@ -114,6 +114,85 @@ async function ButClearClick()
 
 //==================================================================================================
 
+//--------------------------------------------------------------------------------------------------
+// Vérification de la connexion à la base de données
+// Lecture d'une ligne
+// Ecriture d'une valeur 300
+//--------------------------------------------------------------------------------------------------
+async function SupabaseTestConnexion()
+{
+  var lRet;
+  var lCmd;
+  var retStatus;
+  do
+  {
+    // Connexion
+    lCmd = "limit=1";
+    lRet = await SupabaseRead(lCmd);
+    if (lRet.status != "OK")
+    {
+      retStatus = lRet.status;
+      break;
+    }
+
+    // Ecriture 301 (ne sert qu'au test écriture/lecture)
+    const lDate = DateSupabase();
+    const nouveauPoint =
+    {
+        date: lDate,
+        user: USER,
+        type: 301,
+        msg: "test Write/Read"
+    };
+    lRet = await SupabaseWrite(nouveauPoint);
+    if (lRet != "OK")
+    {
+      retStatus = "Erreur pendant le test d'écriture";
+      break;
+    }
+
+    // Relecture 301 (ne sert qu'au test écriture/lecture)
+    lCmd = "user=eq." + USER
+         + "&type=eq.301"
+         + "&order=date.desc"
+         + "&limit=100";
+    lRet = await SupabaseRead(lCmd);
+    if ( (lRet.status != "OK") || (lRet.length == 0) )
+    {
+      retStatus = "Erreur pendant le test de lecture";
+      break;
+    }
+
+    // Suppression si 301 existant
+    if (lRet.length > 0)
+    {
+      const lCmd = "user=eq." + USER
+                 + "&type=eq.301";
+      let lStatus = await SupabaseDelete(lCmd);
+      if (lStatus != "OK")
+      {
+        retStatus = "Erreur pendant le test de suppression";
+        break;
+      }
+    }
+
+    // Relecture 301 (on ne doit plus en avoir)
+    lCmd = "user=eq." + USER
+         + "&type=eq.301"
+         + "&order=date.desc"
+         + "&limit=100";
+    lRet = await SupabaseRead(lCmd);
+    if ( (lRet.status != "OK") || (lRet.length != 0) )
+    {
+      retStatus = "Erreur pendant le test de relecture";
+      break;
+    }
+
+    // Tout est bon
+    retStatus = "OK";
+  } while(0);
+  return (retStatus);
+}
 
 //--------------------------------------------------------------------------------------------------
 // Envoie un nouveau point dans la base de données

@@ -37,14 +37,14 @@
     <div id='divAdmin'>
       <div id='txtAdmin'></div>
       <div style='height: 20px;'></div>
-      <div class='classSaisieTitre' >Numéro utilisateur</div>
-      <input class='classSaisieTexte' id='txtUsr' type='text' placeholder=""><br>
-      <div style='height: 15px;'></div>
       <div class='classSaisieTitre' >Adresse URL</div>
       <input class='classSaisieTexte' id='txtUrl' type='text' placeholder=""><br>
       <div style='height: 15px;'></div>
       <div class='classSaisieTitre' >Clé</div>
       <input class='classSaisieTexte' id='txtKey' type='text' placeholder=""><br>
+      <div style='height: 15px;'></div>
+      <div class='classSaisieTitre' >Numéro utilisateur</div>
+      <input class='classSaisieTexte' id='txtUsr' type='text' placeholder=""><br>
       <div style='height: 20px;'></div>
       <button id='butAdminValider' onclick='ValiderAdmin()' title="Valider les informations de connexion">Valider</button>
       <div style='height: 20px;'></div>
@@ -65,40 +65,38 @@
         <div id='progression-fill'></div>
       </div>
       <div id="progression-labels">
-        <span id='spanDistanceMin'>0km</span><span id='spanDistanceMax'>1km</span>
+        <span id='spanDistanceMin' onclick="PasseAdminOn();">0km</span><span id='spanDistanceMax' onclick='PasseAdminOff();'>1km</span>
       </div>
       <div id="divDistances">&nbsp;</div>
     </div>
 
+    <!----- PARTIE Admin ----->
+    <div id='divBoutonsAdmin' style='display: none; height: 0px'>
+      <button class='classBoutonsCarteAdmin' id='butItineraires' onclick='ListeItineraires()' title='TODO'>Itinéraire</button>
+      <button class='classBoutonsCarteAdmin' id='butInformations' onclick='AdminInformations()' title='TODO'>Infos</button>
+    </div>
+
+    <div id='panItineraires'>
+        TOTO
+    </div>
+
     <!----- PARTIE Map ----->
-    <div id='divButtons' style='display: none;'>                                                    <!---->
+    <div id='divButtons' style='display: none;'>
       <button class='classBoutonsCarte' id='butRafraichir' onclick='Rafraichir()' title="Rafraichir les données">Rafraichir</button>
       <button class='classBoutonsCarte' id='butChoixCarte' onclick='ChoixCarte()' title="Changer de carte">Carte</button>
-      <button class='classBoutonsCarte' id='butPartager' onclick='Partager2()' title="Partager le lien">Partager</button>
+      <button class='classBoutonsCarte' id='butPartager' onclick='Partager()' title="Partager le lien">Partager</button>
     </div>
 
-    <!-- Menu pour la carte -->
     <!-- Menu pour la carte avec Radio Buttons -->
     <div id="menuChoixCarte">
-      <label>
-        <input type="radio" class='classChoixCarte' id='idOsm' name="fondCarte" onclick="SelectionnerFond('osm')" checked>OpenStreetMap&nbsp;
+      <label><input type="radio" class='classChoixCarte' id='idOsm' name="fondCarte" onclick="SelectionnerFond('osm')" checked>OpenStreetMap&nbsp;
       </label><br>
-      <label>
-        <input type="radio" class='classChoixCarte' id='idTopo' name="fondCarte" onclick="SelectionnerFond('topo')">OpenTopMap
+      <label><input type="radio" class='classChoixCarte' id='idTopo' name="fondCarte" onclick="SelectionnerFond('topo')">OpenTopMap
       </label><br>
-      <label>
-        <input type="radio" class='classChoixCarte' id='idIgnPlan' name="fondCarte" onclick="SelectionnerFond('ignPlan')">IGN Plan
+      <label><input type="radio" class='classChoixCarte' id='idIgnPlan' name="fondCarte" onclick="SelectionnerFond('ignPlan')">IGN Plan
       </label><br>
-      <label>
-        <input type="radio" class='classChoixCarte' id='idSatellite' name="fondCarte" onclick="SelectionnerFond('satellite')">Satellite
+      <label><input type="radio" class='classChoixCarte' id='idSatellite' name="fondCarte" onclick="SelectionnerFond('satellite')">Satellite
       </label>
-    </div>
-
-    <!-- Menu pour partager -->
-    <div id="divPartageManuel">
-      Copier dans presse papier
-      <div id='txtACopier'>ABC</div>
-      <button id='butCopierLien' onclick="CopierLien()">Copier</button>
     </div>
 
     <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' />

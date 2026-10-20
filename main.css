@@ -90,7 +90,6 @@ body
 #txtValiderErreur
 {
   margin-left: 10px;
-  color: red;
 }
 
 /*----- Chargement -------------------------------------------------------------------------------*/
@@ -223,9 +222,42 @@ body
   margin-bottom: 10px;
 }
 
+/*----- Admin ------------------------------------------------------------------------------------*/
+/* Boutons pour le mode Admin */
+.classBoutonsCarteAdmin
+{
+  height: 34px;
+  border: 2px solid #F00;
+  background-color: #FFF;
+  color: #000;
+  border-radius: 5px;
+  width: 80px;
+  font-family: 'Verdana';
+  font-size: 13px;
+  z-index: 2;
+  box-shadow: none;
+  margin-bottom: 2px;
+  cursor: pointer;
+}
+
+/* Panneau des itinéraires */
+#panItineraires
+{
+  display: none;
+  position: fixed;
+  background: #FFF;
+  border: 2px solid #F00;
+  z-index: 1000; /* Au dessus de tout */
+  border-radius: 5px;
+  overflow: hidden;
+  padding: 5px;
+  margin: 0px;
+  top: 200px;
+}
+
 /*----- Carte ------------------------------------------------------------------------------------*/
 
-/* Boutons pour la carte */
+/* Boutons pour la carte mod User */
 .classBoutonsCarte
 {
   height: 34px;
@@ -289,18 +321,6 @@ body
   width: 180px;
 }
 
-/* Texte du lien */
-#txtACopier
-{
-  opacity: 0%;
-  height: 0px;
-}
-
-#butCopierLien
-{
-  margin-top: 4px;
-  padding: 5px;
-}
 
 /*================================================================================================*/
 /* Partie basse de l'écran                                                                        */
