@@ -16,7 +16,7 @@
 
   <!----- PARTIE ADMIN ----->
   <div id='divTopContainer'>
-    <div id='divAdmin2' style='display: none'>
+    <div id='panAdmin2' style='display: none'>
       <b>Admin</b><br>
       <button id='btnSTest'       onclick='ButTestClick()'>T</button>
       <button id='btnSEnvoi'      onclick='ButEnvoiClick()'>W</button>
@@ -34,7 +34,7 @@
     </div>
 
     <!----- PARTIE Administrateur ----->
-    <div id='divAdmin'>
+    <div id='panAdmin'>
       <div id='txtAdmin'></div>
       <div style='height: 20px;'></div>
       <div class='classSaisieTitre' >Adresse URL</div>
@@ -52,12 +52,12 @@
     </div>
 
     <!----- PARTIE Chargement ----->
-    <div id='divChargement''>
+    <div id='panChargement''>
       <span id='spanChargement'></span>
     </div>
 
     <!----- PARTIE Progression ----->
-    <div id='divProgression'>                                                                       <!---->
+    <div id='panProgression'>                                                                       <!---->
       <div id='progression-container'>
         <span id='spanDeplacementCurseur'><img id='imgCurseur'></span>
         <span id='txtHeurePosition'></span>
@@ -70,23 +70,21 @@
       <div id="divDistances">&nbsp;</div>
     </div>
 
-    <!----- PARTIE Admin ----->
-    <div id='divBoutonsAdmin' style='display: none; height: 0px'>
-      <button class='classBoutonsCarteAdmin' id='butItineraires' onclick='ListeItineraires()' title='TODO'>Itinéraire</button>
-      <button class='classBoutonsCarteAdmin' id='butInformations' onclick='AdminInformations()' title='TODO'>Infos</button>
-    </div>
-
-    <div id='panItineraires'>
-        TOTO
-    </div>
-
-    <!----- PARTIE Map ----->
-    <div id='divButtons' style='display: none;'>
+    <!----- PARTIE Boutons ----->
+    <div id='panButton' style='display: none;'>
       <button class='classBoutonsCarte' id='butRafraichir' onclick='Rafraichir()' title="Rafraichir les données">Rafraichir</button>
       <button class='classBoutonsCarte' id='butChoixCarte' onclick='ChoixCarte()' title="Changer de carte">Carte</button>
       <button class='classBoutonsCarte' id='butPartager' onclick='Partager()' title="Partager le lien">Partager</button>
+      <button class='classBoutonsCarteAdmin' id='butAdmin' onclick='ListeItineraires()' style='display: none;'title='TODO'>Admin</button>
     </div>
 
+    <!---Menu Admin -->
+    <div id='panItineraires'>
+      TOTO
+    </div>
+
+
+    <!----- PARTIE Map ----->
     <!-- Menu pour la carte avec Radio Buttons -->
     <div id="menuChoixCarte">
       <label><input type="radio" class='classChoixCarte' id='idOsm' name="fondCarte" onclick="SelectionnerFond('osm')" checked>OpenStreetMap&nbsp;

@@ -52,7 +52,7 @@ body
 /*----- Admin ------------------------------------------------------------------------------------*/
 
 /* Container pour l'identification de l'admin */
-#divAdmin
+#panAdmin
 {
   display: none;
   margin-top: 20px;
@@ -95,7 +95,7 @@ body
 /*----- Chargement -------------------------------------------------------------------------------*/
 
 /* Container pour le chargement*/
-#divChargement
+#panChargement
 {
   display: none;
   font-style: italic;
@@ -121,7 +121,7 @@ body
 }
 
 /* Conteneur pour la progression */
-#divProgression
+#panProgression
 {
   display: none;
   border: 0px solid #FFF; /* 0 pour le rendre transparent */
@@ -222,7 +222,17 @@ body
   margin-bottom: 10px;
 }
 
-/*----- Admin ------------------------------------------------------------------------------------*/
+/*----- Boutons ----------------------------------------------------------------------------------*/
+/* Conteneur des boutons */
+#panButtons
+{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap; /* Empêche le passage à la ligne */
+  gap: 10px; /* Espace entre les boutons */
+  margin-bottom: 10px;
+}
+
 /* Boutons pour le mode Admin */
 .classBoutonsCarteAdmin
 {
@@ -255,7 +265,6 @@ body
   top: 200px;
 }
 
-/*----- Carte ------------------------------------------------------------------------------------*/
 
 /* Boutons pour la carte mod User */
 .classBoutonsCarte

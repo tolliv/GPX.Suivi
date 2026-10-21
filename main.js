@@ -246,8 +246,8 @@ async function ChoixDuMode()
   pid('txtUsr').value = txtUsrLocal;
   pid('txtUrl').value = txtUrlLocal;
   pid('txtKey').value = txtKeyLocal;
-  pid('txtAdmin').innerHTML  = "Entrer les informations de connexion.";
-  pid('divAdmin').style.display = 'block';
+  pid('txtAdmin').innerHTML  = "Informations de connexion.";
+  pid('panAdmin').style.display = 'block';
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -278,7 +278,7 @@ async function ValiderAdmin()
     localStorage.setItem('GPXSuivi_key', API_KEY);
 
     // Active le mode admin
-    pid('divAdmin').style.display = 'none';
+    pid('panAdmin').style.display = 'none';
     gModeAdmin = true;
     ModeCommun();
   }
@@ -291,7 +291,7 @@ async function VerifieAccesBase()
 {
   pid('txtValiderErreur').innerHTML = "";
   await sleep(100);
-  pid('txtValiderErreur').innerHTML = "<b>Connexion à la base de données : </b>";
+  pid('txtValiderErreur').innerHTML = "<b>Vérification de la base de données : </b>";
   let status = await SupabaseTestConnexion();
 
   // Aller ligne suivante si erreur (car texte long)
@@ -308,13 +308,11 @@ async function VerifieAccesBase()
 //--------------------------------------------------------------------------------------------------
 function PasseAdminOn()
 {
-  pid('divBoutonsAdmin').style.display = 'block';
-  pid('divBoutonsAdmin').style.height = '36px';
+  pid('butAdmin').style.display = 'inline-block';
 }
 function PasseAdminOff()
 {
-  pid('divBoutonsAdmin').style.display = 'none';
-  pid('divBoutonsAdmin').style.height = '0px';
+  pid('butAdmin').style.display = 'none';
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -322,13 +320,13 @@ function PasseAdminOff()
 //--------------------------------------------------------------------------------------------------
 function ListeItineraires()
 {
-  const but = pid('butItineraires');
+  const but = pid('butAdmin');
   const pan = pid('panItineraires');
 
   if (but.state != 'actif')
   {
     but.state = 'actif';
-    BoutonEtat('butItineraires', but.state);
+    BoutonEtat('butAdmin', but.state);
 
     const rect = pid('map').getBoundingClientRect();
     pan.style.display = 'block';
@@ -339,7 +337,7 @@ function ListeItineraires()
   else
   {
     but.state = 'inactif';
-    BoutonEtat('butItineraires', but.state);
+    BoutonEtat('butAdmin', but.state);
     pan.style.display = 'none';
   }
 }
@@ -368,9 +366,9 @@ async function ModeCommun()
   {
     if (gItineraire.length > 0)
     {
-      pid('divChargement').style.display = 'none';
-      pid('divProgression').style.display = 'block';
-      pid('divButtons').style.display = 'block';
+      pid('panChargement').style.display = 'none';
+      pid('panProgression').style.display = 'block';
+      pid('panButton').style.display = 'block';
       pid('map').style.display = 'block';
       pid('divBottomContainer').style.display = 'block';
       AfficheCarte();
@@ -412,11 +410,11 @@ async function ChargementItineraire()
   var longueurItineraire = 0;
   var longueurPrev = 0;
 
-  pid('divChargement').style.display = 'block';
+  pid('panChargement').style.display = 'block';
 
   console.log("Chargement itinéraire..");
   htmlInt = "<b>Chargement des informations</b><br>";
-  pid('divChargement').innerHTML = htmlInt;
+  pid('panChargement').innerHTML = htmlInt;
 
   // Compte le nombre de points avant de les charger
   const lCmd = "user=eq." + USER
@@ -429,7 +427,7 @@ async function ChargementItineraire()
     longueurItineraire = count;
     console.log("Nombre de points : " + longueurItineraire);
     htmlInt += "Itinéraire 1 (" + longueurItineraire + " points) : ";
-    pid('divChargement').innerHTML = htmlInt + "0%";
+    pid('panChargement').innerHTML = htmlInt + "0%";
 
     if (longueurItineraire > 0)
     {
@@ -461,7 +459,7 @@ async function ChargementItineraire()
             console.log("Chargés : " + gItineraire.length + " points...");
             for (let x = longueurPrev; x < gItineraire.length; x++)
             {
-              pid('divChargement').innerHTML = htmlInt + "<b>"+ Math.round(100*x/longueurItineraire) + "%</b>";
+              pid('panChargement').innerHTML = htmlInt + "<b>"+ Math.round(100*x/longueurItineraire) + "%</b>";
             }
             await sleep(50);
             longueurPrev = gItineraire.length;
