@@ -1,11 +1,10 @@
-/*================================================================================================*/
-/*
+/*==================================================================================================
   Il y a deux parties :
-  #divTopContainer pour la partie haute de l'écran
-  #divBottomContainer pour la partie basse de l'écran
+  #panTopContainer pour la partie haute de l'écran
+  #panBottomContainer pour la partie basse de l'écran
 
   La partie basse sert à trouver la dimension pour la partie haute
-/*================================================================================================*/
+==================================================================================================*/
 
 /* Taille générale du texte */
 body
@@ -31,7 +30,7 @@ body
 /*================================================================================================*/
 
 /* Conteneur haut de page */
-#divTopContainer
+#panTopContainer
 {
   position: absolute;
   top: 5px;
@@ -43,6 +42,14 @@ body
   flex-direction: column;
 }
 
+/* Conteneur principal une fois la connexion faite */
+#panAffichagePrincipal
+{
+  display: none;
+  flex-direction: column;
+  height: 100vh;
+}
+
 #spanTitre
 {
   background-color: #FFF;
@@ -52,7 +59,7 @@ body
 /*----- Admin ------------------------------------------------------------------------------------*/
 
 /* Container pour l'identification de l'admin */
-#panAdmin
+#panAdminConnexion
 {
   display: none;
   margin-top: 20px;
@@ -123,7 +130,7 @@ body
 /* Conteneur pour la progression */
 #panProgression
 {
-  display: none;
+  display: block;
   border: 0px solid #FFF; /* 0 pour le rendre transparent */
   box-sizing: border-box;
 }
@@ -217,7 +224,6 @@ body
   color: #000;
   padding: 5px;
   border: 1px solid #CCC;
-  boder-color: #111;
   border-radius: 10px;
   margin-bottom: 10px;
 }
@@ -228,19 +234,36 @@ body
 {
   display: flex;
   flex-direction: row;
-  flex-wrap: nowrap; /* Empêche le passage à la ligne */
-  gap: 10px; /* Espace entre les boutons */
-  margin-bottom: 10px;
+  flex-wrap: nowrap;  /* Empêche le passage à la ligne */
+  gap: 10px;          /* Espace entre les boutons */
+  margin-bottom: 0px;
+}
+
+/* Boutons pour la carte mod User */
+.classBoutonsCarte
+{
+  height: 34px;
+  border: 2px solid #444;
+  background-color: #FFF;
+  color: #000;
+  border-radius: 14px;
+  width: 80px;
+  font-family: 'Verdana';
+  font-size: 13px;
+  z-index: 2;
+  box-shadow: none;
+  margin-bottom: 2px;
+  cursor: pointer;
 }
 
 /* Boutons pour le mode Admin */
 .classBoutonsCarteAdmin
 {
   height: 34px;
-  border: 2px solid #F00;
+  border: 2px solid #080;
   background-color: #FFF;
   color: #000;
-  border-radius: 5px;
+  border-radius: 14px;
   width: 80px;
   font-family: 'Verdana';
   font-size: 13px;
@@ -250,55 +273,38 @@ body
   cursor: pointer;
 }
 
-/* Panneau des itinéraires */
-#panItineraires
+/* Panneau des commandes admin */
+#panAdminCommandes
 {
   display: none;
   position: fixed;
   background: #FFF;
-  border: 2px solid #F00;
-  z-index: 1000; /* Au dessus de tout */
+  border: 2px solid #080;
+  z-index: 1000;
   border-radius: 5px;
   overflow: hidden;
-  padding: 5px;
-  margin: 0px;
-  top: 200px;
-}
-
-
-/* Boutons pour la carte mod User */
-.classBoutonsCarte
-{
-  height: 34px;
-  border: 2px solid #AAA;
-  background-color: #FFF;
-  color: #000;
-  border-radius: 5px;
-  width: 80px;
-  font-family: 'Verdana';
-  font-size: 13px;
-  z-index: 2;
-  box-shadow: none;
-  margin-bottom: 2px;
-  cursor: pointer;
+  padding: 10px;
+  margin: 20px;
+  box-shadow: 8px 8px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* Menu pour le choix de la carte */
-#menuChoixCarte
+#panChoixCarte
 {
   display: none;
   position: fixed;
   background: #FFF;
-  border: 2px solid #AAA;
-  z-index: 1000; /* Au dessus de tout */
+  border: 2px solid #444;
+  z-index: 900;
   border-radius: 5px;
   overflow: hidden;
   padding: 5px;
   margin: 0px;
+  box-shadow: 8px 8px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* Radiobuttons pour pouvoir les centrer */
-#menuChoixCarte input[type="radio"]
+#panChoixCarte input[type="radio"]
 {
   vertical-align: middle;
   position: relative;
@@ -307,28 +313,47 @@ body
 }
 
 /* Texte du menu */
-.classChoixCarte
+.classTexteMenu
 {
   margin-top: 6px;
   margin-bottom: 5px;
 }
 
-/*----- Partager ------------------------------------------------------------------------------------*/
-
-/* Fenêtre de partage du lien */
-#divPartageManuel
+/* Panel pour les boutons sur la map */
+#panBoutonsPositions
 {
-  display: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
   position: fixed;
-  background: #FFF;
-  border: 2px solid #AAA;
-  z-index: 1000; /* Au dessus de tout */
-  border-radius: 5px;
-  overflow: hidden;
-  padding: 5px;
   margin: 0px;
-  width: 180px;
+  margin-left: 20px;
+  padding-top: 4px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 2px;
+  z-index: 2; /* 1 cran au dessus de la carte */
+  border: 2px solid #AAA;
+  box-sizing: border-box;
+  background-color: #FFF;
+  border-radius: 5px;
+  width: 250px;
+  left: 50%;
+  transform: translateX(-50%);
 }
+
+/* Radiobuttons pour pouvoir les centrer */
+#panBoutonsPositions input[type="radio"]
+{
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+  left: -1px;
+}
+
+
+/*----- Partager ------------------------------------------------------------------------------------*/
 
 
 /*================================================================================================*/
@@ -336,13 +361,14 @@ body
 /*================================================================================================*/
 
 /* Container Bas de page */
-#divBottomContainer
+#panBottomContainer
 {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: fixed;
+  bottom: 0px;
+  left: 5px;
+  right: 5px;
   height: 28px;
+  bottom: 0px;
   background-color: #FFF;
   border: 1px solid #FFF;
   box-sizing: border-box;
@@ -350,13 +376,15 @@ body
   margin-right: 0px;
   margin-top: 0px;
   margin-bottom: 0px;
-  display: none;
+  z-index: 10000; /* Au dessus de tout */
 }
 
 /* Texte bas de page */
+/* Invisible par défaut pour avoir le redimensionnement automatique */
 #spanBottom
 {
   opacity: 0;
+  background-color: #FFF;
   display: flex;
   align-items: center;
   margin-left: 5px;

@@ -28,8 +28,8 @@
 {
   box-sizing: border-box;
   margin: 0px;
-  height: 100%;
   width: 100%;
+  flex: 1;
   border-radius: 0px;
   border: 2px solid #CCC;
   z-index: 1;

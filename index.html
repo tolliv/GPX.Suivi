@@ -14,9 +14,11 @@
   <script src='main.js'> </script>
   <script src='driverSupabase.js'> </script>
 
-  <!----- PARTIE ADMIN ----->
-  <div id='divTopContainer'>
-    <div id='panAdmin2' style='display: none'>
+  <!----- CONTAINER TOP --------------------------------------------------------------------------->
+  <div id='panTopContainer'>
+
+    <!----- PARTIE ADMIN ----->
+    <div id='panAdminConnexion2' style='display: none'>
       <b>Admin</b><br>
       <button id='btnSTest'       onclick='ButTestClick()'>T</button>
       <button id='btnSEnvoi'      onclick='ButEnvoiClick()'>W</button>
@@ -27,14 +29,14 @@
     </div>
 
     <!----- PARTIE Titre ----->
-    <div id='titreSuivi' style='font-size: 1.8em;'>
+    <div id='panTitreSuivi' style='font-size: 1.8em;'>
       <span id='spanTitre'>GPX.Suivi</span>
       <span id='spanNom' style='opacity: 0;'>&nbsp;</span>
       <span id='divAvancement'></span>
     </div>
 
-    <!----- PARTIE Administrateur ----->
-    <div id='panAdmin'>
+    <!----- PARTIE Informations de connexion pour Admin ----->
+    <div id='panAdminConnexion'>
       <div id='txtAdmin'></div>
       <div style='height: 20px;'></div>
       <div class='classSaisieTitre' >Adresse URL</div>
@@ -52,71 +54,85 @@
     </div>
 
     <!----- PARTIE Chargement ----->
-    <div id='panChargement''>
-      <span id='spanChargement'></span>
-    </div>
+    <div id='panChargement'></div>
 
-    <!----- PARTIE Progression ----->
-    <div id='panProgression'>                                                                       <!---->
-      <div id='progression-container'>
-        <span id='spanDeplacementCurseur'><img id='imgCurseur'></span>
-        <span id='txtHeurePosition'></span>
-        <div id='progression-track'></div>
-        <div id='progression-fill'></div>
+    <!---------- AFFICHAGE PRINCIPAL (hors titre) ---------->
+    <div id='panAffichagePrincipal'>
+
+      <!----- PARTIE Nom de l'itinéraire ----->
+      <div id='txtNomItineraire' style='display: none;'>Itinéraire</div>
+
+      <!----- PARTIE Progression ----->
+      <div id='panProgression'>
+        <div id='progression-container'>
+          <span id='spanDeplacementCurseur'><img id='imgCurseur'></span>
+          <span id='txtHeurePosition'></span>
+          <div id='progression-track'></div>
+          <div id='progression-fill'></div>
+        </div>
+        <div id="progression-labels">
+          <span id='spanDistanceMin' onclick="PasseAdminOn();">0km</span><span id='spanDistanceMax' onclick='PasseAdminOff();'>0km</span>
+        </div>
+        <div id="divDistances">&nbsp;</div>
       </div>
-      <div id="progression-labels">
-        <span id='spanDistanceMin' onclick="PasseAdminOn();">0km</span><span id='spanDistanceMax' onclick='PasseAdminOff();'>1km</span>
+
+      <!----- PARTIE Boutons et menu ----->
+      <div id='panButtons'>
+        <!-- Boutons -->
+        <button class='classBoutonsCarte' id='butRafraichir' onclick='Rafraichir()' title="Rafraichir les données">Rafraichir</button>
+        <button class='classBoutonsCarte' id='butChoixCarte' onclick='ChoixCarte()' title="Changer de carte">Carte</button>
+        <button class='classBoutonsCarte' id='butPartager' onclick='Partager()' title="Partager le lien">Partager</button>
+        <button class='classBoutonsCarteAdmin' id='butAdmin' onclick='CommandesAdmin()' style='display: none;'title='TODO'>Admin</button>
+
+        <!-- Menu Admin -->
+        <div id='panAdminCommandes'>
+        </div>
+
+        <!-- Menu pour la carte avec Radio Buttons -->
+        <div id="panChoixCarte">
+          <label><input type="radio" class='classTexteMenu' id='idOsm' name="fondCarte" onclick="SelectionnerFond('osm')" checked>OpenStreetMap&nbsp;
+          </label><br>
+          <label><input type="radio" class='classTexteMenu' id='idTopo' name="fondCarte" onclick="SelectionnerFond('topo')">OpenTopMap
+          </label><br>
+          <label><input type="radio" class='classTexteMenu' id='idIgnPlan' name="fondCarte" onclick="SelectionnerFond('ignPlan')">IGN Plan
+          </label><br>
+          <label><input type="radio" class='classTexteMenu' id='idSatellite' name="fondCarte" onclick="SelectionnerFond('satellite')">Satellite
+          </label>
+        </div>
+
+        <!-- Boutons choix affichage positions -->
+        <div id='panBoutonsPositions'>
+          <b>Position :</b>
+          <label><input type="radio" class='classTexteMenu' id='idPositionLast' name="ChoixAffichagePositions" onclick="SelectionnerChoixPosition('last')" checked>Dernière</label>
+          <label><input type="radio" class='classTexteMenu' id='idPositionAll' name="ChoixAffichagePositions" onclick="SelectionnerChoixPosition('all')">Toutes</label>
+        </div>
+
       </div>
-      <div id="divDistances">&nbsp;</div>
-    </div>
 
-    <!----- PARTIE Boutons ----->
-    <div id='panButton' style='display: none;'>
-      <button class='classBoutonsCarte' id='butRafraichir' onclick='Rafraichir()' title="Rafraichir les données">Rafraichir</button>
-      <button class='classBoutonsCarte' id='butChoixCarte' onclick='ChoixCarte()' title="Changer de carte">Carte</button>
-      <button class='classBoutonsCarte' id='butPartager' onclick='Partager()' title="Partager le lien">Partager</button>
-      <button class='classBoutonsCarteAdmin' id='butAdmin' onclick='ListeItineraires()' style='display: none;'title='TODO'>Admin</button>
-    </div>
-
-    <!---Menu Admin -->
-    <div id='panItineraires'>
-      TOTO
-    </div>
-
-
-    <!----- PARTIE Map ----->
-    <!-- Menu pour la carte avec Radio Buttons -->
-    <div id="menuChoixCarte">
-      <label><input type="radio" class='classChoixCarte' id='idOsm' name="fondCarte" onclick="SelectionnerFond('osm')" checked>OpenStreetMap&nbsp;
-      </label><br>
-      <label><input type="radio" class='classChoixCarte' id='idTopo' name="fondCarte" onclick="SelectionnerFond('topo')">OpenTopMap
-      </label><br>
-      <label><input type="radio" class='classChoixCarte' id='idIgnPlan' name="fondCarte" onclick="SelectionnerFond('ignPlan')">IGN Plan
-      </label><br>
-      <label><input type="radio" class='classChoixCarte' id='idSatellite' name="fondCarte" onclick="SelectionnerFond('satellite')">Satellite
-      </label>
-    </div>
-
-    <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' />
-    <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
-    <script src='map.js'> </script>
-    <link rel='stylesheet' type='text/css' href='map.css'>
-    <div id='map' style='display: none;'>                                                           <!---->
+      <!----- PARTIE Map ----->
+      <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'/>
+      <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
+      <script src='map.js'> </script>
+      <link rel='stylesheet' type='text/css' href='map.css'>
+      <div id='map'></div>
     </div>
   </div>
-<div id='divBottomContainer'>
-  <span id='spanBottom' class='classTextePetit'>                                                    <!---->
-    <span><b>Légende</b>&nbsp;&nbsp;</span>
-    <img id='imgLegendeDebut'>
-    <span>&nbsp;Début&nbsp;&nbsp;&nbsp;</span>
-    <img id='imgLegendePosition'>
-    <span>&nbsp;Position&nbsp;&nbsp;&nbsp;</span>
-    <img id='imgLegendeBivouac'>
-    <span>&nbsp;Bivouac&nbsp;&nbsp;&nbsp;</span>
-    <img id='imgLegendeFin'>
-    <span>&nbsp;Fin</span>
-  </span>
-</div>
+
+  <!----- CONTAINER BOTTOM ------------------------------------------------------------------------>
+  <div id='panBottomContainer'>
+    <span id='spanBottom' class='classTextePetit'>
+      <span><b>Légende</b>&nbsp;&nbsp;</span>
+      <img id='imgLegendeDebut'>
+      <span>&nbsp;Début&nbsp;&nbsp;&nbsp;</span>
+      <img id='imgLegendePosition'>
+      <span>&nbsp;Position&nbsp;&nbsp;&nbsp;</span>
+      <img id='imgLegendeBivouac'>
+      <span>&nbsp;Bivouac&nbsp;&nbsp;&nbsp;</span>
+      <img id='imgLegendeFin'>
+      <span>&nbsp;Fin</span>
+    </span>
+  </div>
+
 </body>
 </html>
 

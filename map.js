@@ -63,8 +63,10 @@ function createStaticIcons()
 // Création des marqueurs
 // Tous avec la lettre ${initiale}
 //--------------------------------------------------------------------------------------------------
-function CreationMarqueurs(lettre)
+function CreationMarqueurs()
 {
+  const lettre = gPrenom[0];
+
   // Icones dynamiques
   IconeDebut =         createDynamicIcon(lettre, '#000', '#0F0');
   IconeFin =           createDynamicIcon(lettre, '#FFF', '#F00');
@@ -99,13 +101,23 @@ function CreationMarqueurs(lettre)
 }
 
 //--------------------------------------------------------------------------------------------------
-// Affichage la carte
+// Affichage de la carte
 //--------------------------------------------------------------------------------------------------
 function AfficheCarte()
 {
   // Affichage de la carte
   map = L.map('map').setView(gCurrentCenter, gCurrentZoom);
   SelectionnerFond('osm');
+}
+
+//--------------------------------------------------------------------------------------------------
+// Affichage des boutons Dernière position, Toutes les positions
+//--------------------------------------------------------------------------------------------------
+function AfficherBoutonsPosition()
+{
+  const rect = pid('map').getBoundingClientRect();
+  pid('panBoutonsPositions').style.top = (rect.top + 12) + 'px';
+  pid('panBoutonsPositions').style.display = 'block';
 }
 
 
@@ -168,6 +180,7 @@ function AffichePositions()
     gPositions.forEach(pos =>
     {
       nb++;
+
       // Création du marqueur
       var iconChoisie;
       if (pos.poi == 1)
@@ -179,24 +192,28 @@ function AffichePositions()
       else
         iconChoisie = IconePosition;
 
-      // Icone rattachement sur l'itinéraire
-      const latItineraire = gItineraire[pos.numeroPointItineraire].lat;
-      const lonItineraire = gItineraire[pos.numeroPointItineraire].lon;
-      const rattachement = L.marker([latItineraire, lonItineraire], {icon:IconeRattachement, zIndexOffset:-1000}).addTo(map);
-
-      // Icone du POI
-      const marker = L.marker([pos.lat, pos.lon], {icon:iconChoisie}).addTo(map);
-
-      // Prend en compte les markers dans les limites
-      bounds.extend([pos.lat, pos.lon]);
-
-      // Création de la Bulle
-      marker.bindPopup(pos.msg,
+      // Suivant si on affiche tout ou seulement la dernière position
+      if ( (gAffichagePositions == 'all') || ((gAffichagePositions == 'last') && (nb == gPositions.length-1)) )
       {
-          className: 'custom-popup',
-          maxWidth: 500,
-          closeButton: false,
-      });
+        // Icone rattachement sur l'itinéraire
+        const latItineraire = gItineraire[pos.numeroPointItineraire].lat;
+        const lonItineraire = gItineraire[pos.numeroPointItineraire].lon;
+        const rattachement = L.marker([latItineraire, lonItineraire], {icon:IconeRattachement, zIndexOffset:-1000}).addTo(map);
+
+        // Icone du POI
+        const marker = L.marker([pos.lat, pos.lon], {icon:iconChoisie}).addTo(map);
+
+        // Prend en compte les markers dans les limites
+        bounds.extend([pos.lat, pos.lon]);
+
+        // Création de la Bulle
+        marker.bindPopup(pos.msg,
+        {
+            className: 'custom-popup',
+            maxWidth: 500,
+            closeButton: false,
+        });
+      }
     });
 
     // Englobe tout avec une marge
@@ -249,6 +266,6 @@ function SelectionnerFond(nomFond)
     coucheActuelle = nouveauFond;
 
     // Fermer le menu après sélection
-    pid('menuChoixCarte').style.display = 'none';
+    pid('panChoixCarte').style.display = 'none';
     BoutonEtat('butChoixCarte', 'inactif');
 }

@@ -11,25 +11,26 @@ var gCurrentCenter = [46.5397, 2.4303];
 var gRafraichirEnCours = false;
 var gMapInitialized = false;
 var gModeAdmin = false;
+var gAffichagePositions = 'last';
+var gPrenom = "Toto";
 
 //----- Démarrage de l'application -----
 document.addEventListener('DOMContentLoaded', function()
 {
-  observer.observe(pid('divBottomContainer'));
+  observer.observe(pid('panBottomContainer'));
 });
 
 //----- Observer sur le redimmensionnement -----
 const observer = new ResizeObserver(() =>
 {
-  // Redimensionnement de divTopContainer
-  const heightBottom = pid('divBottomContainer').offsetHeight;
-  pid('divTopContainer').style.bottom = (heightBottom+1) + "px";
+  // Redimensionnement de panTopContainer
+  const heightBottom = pid('panBottomContainer').offsetHeight;
+  pid('panTopContainer').style.bottom = (heightBottom+1) + "px";
 
   // On peut afficher la carte maintenant
   if (gMapInitialized == false)
   {
     gMapInitialized = true;
-
     Run();
   }
 });
@@ -40,8 +41,8 @@ const observer = new ResizeObserver(() =>
 function pid(id)
 {
   const element = document.getElementById(id);
-  if (id == null)
-    console.log("ID NULL (" + id + ")");
+  if (element == null)
+    console.log("Element NULL (" + id + ")");
   return(element);
 }
 
@@ -191,12 +192,15 @@ async function Run()
   const queryString = window.location.search;
   const lineParams = new URLSearchParams(queryString);
 
-  // Vérification si les paramètres existent et sont valides
+  //----- Vérification si les paramètres existent et sont valides -----
   // USER
   if (lineParams.has("usr"))
   {
     usrParam = lineParams.get("usr");
-    if ( (usrParam == "1768976714") || (usrParam == "1785819725") )
+    let quotient = Number(usrParam) / 124991;
+    if (usrParam == "1768976714")
+      quotient = 1;
+    if ( (quotient >= 1) && (quotient <= 8) && (quotient%1 == 0) )
       USER = usrParam;
   }
 
@@ -217,18 +221,18 @@ async function Run()
   }
 
   // Si tous les paramètres sont valides
-  // Mode Famille directement sinon on permet le choix du mode
+  // Mode Famille directement sinon on affiche le panel des informations de connexion
   if ( (USER != "?") && (API_URL != "?") && (API_KEY != "?") )
     ModeCommun();
   else
-    ChoixDuMode();
+    InfosConnexion();
 }
 
 
 //--------------------------------------------------------------------------------------------------
-// Passage en mode Choix du mode
+// Affichage des informations de connexion
 //--------------------------------------------------------------------------------------------------
-async function ChoixDuMode()
+async function InfosConnexion()
 {
   var txtUsrLocal = "";
   var txtUrlLocal = "";
@@ -247,7 +251,7 @@ async function ChoixDuMode()
   pid('txtUrl').value = txtUrlLocal;
   pid('txtKey').value = txtKeyLocal;
   pid('txtAdmin').innerHTML  = "Informations de connexion.";
-  pid('panAdmin').style.display = 'block';
+  pid('panAdminConnexion').style.display = 'block';
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -261,27 +265,53 @@ async function ValiderAdmin()
   API_URL = pid('txtUrl').value;
   API_KEY = pid('txtKey').value;
 
-  if ((USER != "") && (USER != "?")
-   && (API_URL != "") && (API_URL != "?")
-   && (API_KEY != "") && (API_KEY != "?"))
-  {
-    if (await VerifieAccesBase() == "OK")
-      flagOk = true;
-  }
+  // Validation
+  let quotient = Number(USER) / 124991;
+  if (USER == 1768976714)
+    quotient = 1;
 
-  // Si on peut accéder à la base de données
-  if (flagOk == true)
+  // Vérifications
+  do
   {
+    if ( (API_URL == "") || (!API_URL.includes('https:')) )
+    {
+      pid('txtValiderErreur').innerHTML = "Erreur sur l'adresse URL";
+      break;
+    }
+    if ( (API_KEY == "") || (API_KEY == "?") || (!API_KEY.includes('sb_publishable')) )
+    {
+      pid('txtValiderErreur').innerHTML = "Erreur sur la clé";
+      break;
+    }
+    if ( (USER == "") || (USER == "?") )
+    {
+      pid('txtValiderErreur').innerHTML = "Erreur sur le numéro d'utilisateur";
+      break;
+    }
+    if ( (quotient < 1) || (quotient > 8) )
+    {
+      pid('txtValiderErreur').innerHTML = "Erreur, Numéro d'utilisateur non autorisé";
+      break;
+    }
+    if (quotient%1 !=0)
+    {
+      pid('txtValiderErreur').innerHTML = "Erreur, Numéro d'utilisateur non autorisé";
+      break;
+    }
+
+    if (await VerifieAccesBase() != "OK")
+      break;
+
     // Sauvegarde dans le local storage
     localStorage.setItem('GPXSuivi_usr', USER);
     localStorage.setItem('GPXSuivi_url', API_URL);
     localStorage.setItem('GPXSuivi_key', API_KEY);
 
-    // Active le mode admin
-    pid('panAdmin').style.display = 'none';
+    // Active le mode admin puisqu'on vient de valider les paramètres
+    pid('panAdminConnexion').style.display = 'none';
     gModeAdmin = true;
     ModeCommun();
-  }
+  } while (0);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -316,28 +346,31 @@ function PasseAdminOff()
 }
 
 //--------------------------------------------------------------------------------------------------
-// Panneau des itinéraires
+// Affiche les commandes admin
 //--------------------------------------------------------------------------------------------------
-function ListeItineraires()
+function CommandesAdmin()
 {
   const but = pid('butAdmin');
-  const pan = pid('panItineraires');
+  const pan = pid('panAdminCommandes');
 
+  // Il était inactif, on l'active
   if (but.state != 'actif')
   {
-    but.state = 'actif';
-    BoutonEtat('butAdmin', but.state);
+    BoutonEtat('butAdmin', 'actif');
 
     const rect = pid('map').getBoundingClientRect();
     pan.style.display = 'block';
-    pan.style.top = rect.top + 3 + 'px';
-    pan.style.left = rect.left + 1 + 'px';
-    pan.style.width = '250px';
+    pan.style.top = (rect.top + 3) + 'px';
+    pan.style.left = (rect.left + 3) + 'px';
+    pan.style.right = '8px';
+    pan.style.bottom = '100px';   // 100px du bas en remontant
+    pan.innerHTML = "TITI";
   }
+
+  // Il était actif, on le désactive
   else
   {
-    but.state = 'inactif';
-    BoutonEtat('butAdmin', but.state);
+    BoutonEtat('butAdmin', 'inactif');
     pan.style.display = 'none';
   }
 }
@@ -352,10 +385,18 @@ function AdminInformations()
 
 //--------------------------------------------------------------------------------------------------
 // Démarrage du mode commun
-// Le mode Admin a plus d'icones que le mode Famille
+// Avec le bouton Admin si on vient de valider les informations de connexion
 //--------------------------------------------------------------------------------------------------
 async function ModeCommun()
 {
+  // Affichage du panneau de chargement
+  pid('panChargement').style.display = 'block';
+
+  // Prénom et marqueurs
+  // TODO récupérer le prénom depuis la base de données
+  gPrenom = "Thierry";
+  CreationMarqueurs();
+
   // Chargement
   var lRetChargement = "";
   lRetChargement = await ChargementItineraire();
@@ -364,38 +405,36 @@ async function ModeCommun()
   // Chargement OK
   if (lRetChargement == "OK")
   {
+    pid('panChargement').style.display = 'none';
+    pid('panAffichagePrincipal').style.display = 'flex';
+
+    AfficheCarte();
+    AfficherBoutonsPosition();
+
     if (gItineraire.length > 0)
     {
-      pid('panChargement').style.display = 'none';
-      pid('panProgression').style.display = 'block';
-      pid('panButton').style.display = 'block';
-      pid('map').style.display = 'block';
-      pid('divBottomContainer').style.display = 'block';
-      AfficheCarte();
-      CreationMarqueurs('T');
       SimulationPoints();  // Pour le DEBUG
       AfficheRattachements();
       AfficheItineraire();
-      AffichePositions();
-      CalculeDistanceTotaleEtParcourue();
-      AfficheProgression();
-      if (gModeAdmin)
-        PasseAdminOn();
     }
-    else
-    {
-      console.log("Aucun point");
-    }
+
+    AffichePositions();
+    CalculeDistanceTotaleEtParcourue();
+    AfficheProgression();
+
+    if (gModeAdmin)
+      PasseAdminOn();
   }
   else
   {
     console.log("Erreur chargement");
+    // TODO
   }
 }
 
 
 //--------------------------------------------------------------------------------------------------
-// Chargement de l'itinéraire
+// Chargement de l'itinéraire depuis la base de données
 // Retourne un status
 //--------------------------------------------------------------------------------------------------
 async function ChargementItineraire()
@@ -403,7 +442,7 @@ async function ChargementItineraire()
   var lRet = "";
 
   // Nom du randonneur
-  pid('spanNom').innerHTML = "Thierry";
+  pid('spanNom').innerHTML = gPrenom;
   pid('spanNom').style.opacity = '1';
 
   var htmlInt = "";
@@ -413,7 +452,7 @@ async function ChargementItineraire()
   pid('panChargement').style.display = 'block';
 
   console.log("Chargement itinéraire..");
-  htmlInt = "<b>Chargement des informations</b><br>";
+  htmlInt = "<br><b>Chargement des informations</b><br>";
   pid('panChargement').innerHTML = htmlInt;
 
   // Compte le nombre de points avant de les charger
@@ -481,24 +520,28 @@ async function ChargementItineraire()
         console.log("OK " + gItineraire.length + " points");
       lRet = status;
     }
+
+    // Aucun point mais ce n'est pas une erreur
+    else
+      lRet = "OK";
   }
   else
     lRet = status;
   return(lRet);
 }
 
+
 //--------------------------------------------------------------------------------------------------
-// Activation/Désactivation d'unbouton
-// Blanc sur fond gris
+// Activation/Désactivation d'un bouton
 //--------------------------------------------------------------------------------------------------
 function BoutonEtat(bouton, etat)
 {
   const but = pid(bouton);
   if (etat == 'actif')
-    but.style.backgroundColor = '#444'  ,  but.style.color = '#FFF';
+    but.style.backgroundColor = '#444'  ,  but.style.color = '#FFF' ,  but.state = 'actif';
 
   if (etat == 'inactif')
-    but.style.backgroundColor = '#FFF'  ,  but.style.color = '#000';
+    but.style.backgroundColor = '#FFF'  ,  but.style.color = '#000' ,  but.state = 'inactif';
 }
 
 
@@ -740,11 +783,13 @@ async function Rafraichir()
 //--------------------------------------------------------------------------------------------------
 function ChoixCarte()
 {
-  const menu = pid('menuChoixCarte');
-  if (menu.style.display === 'none' || menu.style.display === '')
+  // Menu non affiché, on l'affiche
+  const menu = pid('panChoixCarte');
+  if (pid('butChoixCarte').state != 'actif')
   {
-    menu.style.display = 'block';
     BoutonEtat('butChoixCarte', 'actif');
+
+    menu.style.display = 'block';
 
     // Position du bouton
     const rect = pid('butChoixCarte').getBoundingClientRect();
@@ -756,6 +801,8 @@ function ChoixCarte()
     if (menuRect.right > window.innerWidth)
         menu.style.left = (rect.right - menuRect.width) + 'px';
   }
+
+  // Masquage du menu
   else
   {
     menu.style.display = 'none';
@@ -813,6 +860,37 @@ function Partager()
   }
 }
 
+//--------------------------------------------------------------------------------------------------
+// Choix de l'affichage de la position
+//--------------------------------------------------------------------------------------------------
+function SelectionnerChoixPosition(choix)
+{
+  let lRefresh = false;
+  if (choix == 'last')
+  {
+    gAffichagePositions = 'last';
+    lRefresh = true;
+  }
+  if (choix == 'all')
+  {
+    gAffichagePositions = 'all';
+    lRefresh = true;
+  }
+
+  // Si on doit rafraichir
+  if (lRefresh)
+  {
+    // Efface les marqueurs mais pas la carte ni l'itinéraire
+    map.eachLayer(function (layer)
+    {
+      if (layer instanceof L.Marker)
+      {
+        map.removeLayer(layer);
+      }
+    });
+    AffichePositions();
+  }
+}
 
 //--------------------------------------------------------------------------------------------------
 // Affiche une alternative si le partage natif échoue
