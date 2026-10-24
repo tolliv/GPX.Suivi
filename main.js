@@ -168,7 +168,7 @@ async function ButLoadClick()
     }
 
     // Ecriture du Nom de l'itinéraire dans la base de données
-    lStatus = await SupabaseWriteNomItineraire();
+    lStatus = await SupabaseWriteNomItineraire(gNomItineraire);
     const delta = Math.round(0.100*(performance.now() - t0))/100;
     console.log("Ecriture " + lStatus + " (" + delta + "s)");
   }
@@ -417,19 +417,21 @@ async function ModeCommun()
   pid('panChargement').style.display = 'block';
 
   // Prénom et marqueurs
-  const lecturePrenom = SupabaseReadPrenom();
-  if (lecturePrenom.status == "OK" && lecturePrenom.length > 0)
-    gPrenom = lecturePrenom.data;
+  const lecture = await SupabaseReadPrenom();
+  if (lecture.status == "OK" && lecture.length > 0)
+    gPrenom = lecture.data[0].msg;
   else
     gPrenom = "Toto";
   CreationMarqueurs();
 
-  // Nom du randonneur
-  pid('spanNom').innerHTML = "<b>" + gPrenom + "</b>";
-  pid('spanNom').style.opacity = '1';
+  // Prénom de l'utilisateur
+  pid('spanPrenom').innerHTML = "<b>" + gPrenom + "</b>";
+  pid('spanPrenom').style.opacity = '1';
 
   // Lecture du nom de l'itinéraire
   lStatus = await SupabaseReadNomItineraire();
+  if (lStatus.status == "OK" && lStatus.length > 0)
+    gNomItineraire = lStatus.data[0].msg;
 
   // Chargement
   var lRetChargement = "";
@@ -452,6 +454,7 @@ async function ModeCommun()
     pid('panAffichagePrincipal').style.display = 'flex';
 
     AfficheCarte();
+    pid('spanBottom').style.opacity = '1';
     AfficherBoutonsPosition();
 
 // gItineraire = []; // DEBUG
@@ -1082,6 +1085,7 @@ async function ButAdminChargerClick()
 
   // Lecture du nom de l'itinéraire
   lStatus = await SupabaseReadNomItineraire();
+  gNomItineraire = lStatus.data[0].msg;
 
   // Nouvelles valeurs (le nombre de points est affiché par ChargementItineraireAdmin()
   pid('txtAdminNomItineraire').value = gNomItineraire;
@@ -1094,16 +1098,39 @@ async function ButAdminChargerClick()
 async function ButAdminModifierNomClick()
 {
   // Ecriture du nom de l'itinéraire dans la base de données
-  gNomItineraire = pid('txtAdminNomItineraire').value;
-  lStatus = await SupabaseWriteNomItineraire();
+  nouveau = pid('txtAdminNomItineraire').value;
+  lStatus = await SupabaseWriteNomItineraire(nouveau);
 
   // Relecture du nom de l'itinéraire
   lStatus = await SupabaseReadNomItineraire();
+  if (lStatus.status == "OK" && lStatus.length > 0)
+    gNomItineraire = lStatus.data[0].msg;
+  else
+    gNomItineraire = "(aucun itinéraire)";
 
   // Nouvelle valeur
   pid('txtAdminNomItineraire').value = gNomItineraire;
 }
 
+
+//--------------------------------------------------------------------------------------------------
+// Modifier le Prénom de l'utilisateur
+//--------------------------------------------------------------------------------------------------
+async function ButAdminModifierPrenomClick()
+{
+  // Ecriture du Prénom de l'utilisateur dans la base de données
+  const nouveau = pid('txtAdminPrenom').value;
+  lStatus = await SupabaseWritePrenom(nouveau);
+
+  // Relecture du prénom
+  lStatus = await SupabaseReadPrenom();
+  gPrenom = lStatus.data[0].msg;
+
+  // Nouvelle valeur
+  pid('txtAdminPrenom').value = gPrenom;
+  pid('spanPrenom').innerHTML = "<b>" + gPrenom + "</b>";
+  pid('spanPrenom').style.opacity = '1';
+}
 
 
 //==================================================================================================

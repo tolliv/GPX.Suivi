@@ -117,7 +117,7 @@ async function ButClearClick()
 //--------------------------------------------------------------------------------------------------
 // Vérification de la connexion à la base de données
 // Lecture d'une ligne
-// Ecriture d'une valeur 300
+
 //--------------------------------------------------------------------------------------------------
 async function SupabaseTestConnexion()
 {
@@ -195,6 +195,30 @@ async function SupabaseTestConnexion()
 }
 
 //--------------------------------------------------------------------------------------------------
+// Ecrit le Prénom
+// Depuis la variable dans gPrenom
+//--------------------------------------------------------------------------------------------------
+async function SupabaseWritePrenom(nouveau)
+{
+  // Effacement des anciens prénoms
+  const lCmd = "user=eq." + USER
+             + "&type=eq.1000";
+  let lStatus = await SupabaseDelete(lCmd);
+
+  // Ecriture du nouveau prénom
+  const lDate = DateSupabase();
+  const nouveauPoint =
+  {
+      date: lDate,
+      user: USER,
+      type: 1000,
+      msg: nouveau
+  };
+  const lRet = await SupabaseWrite(nouveauPoint);
+  return(lRet);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Lit le prénom
 //--------------------------------------------------------------------------------------------------
 async function SupabaseReadPrenom()
@@ -203,9 +227,9 @@ async function SupabaseReadPrenom()
   var lCmd;
   var retStatus;
 
-  // Lecture 300
+  // Lecture 1000
   lCmd = "user=eq." + USER
-       + "&type=eq.300"
+       + "&type=eq.1000"
        + "&order=date.desc"
        + "&limit=1";
   lRet = await SupabaseRead(lCmd);
@@ -216,7 +240,7 @@ async function SupabaseReadPrenom()
 // Ecrit le nom de l'itinéraire
 // Depuis la variable dans gNomItineraire
 //--------------------------------------------------------------------------------------------------
-async function SupabaseWriteNomItineraire()
+async function SupabaseWriteNomItineraire(nouveau)
 {
   const lDate = DateSupabase();
   const nouveauPoint =
@@ -224,7 +248,7 @@ async function SupabaseWriteNomItineraire()
       date: lDate,
       user: USER,
       type: 302,
-      msg: gNomItineraire
+      msg: nouveau
   };
   lRet = await SupabaseWrite(nouveauPoint);
 }
@@ -239,17 +263,14 @@ async function SupabaseReadNomItineraire()
   var lCmd;
   var retStatus;
 
-  // Lecture 300
+  // Lecture 302
   lCmd = "user=eq." + USER
        + "&type=eq.302"
        + "&order=date.desc"
        + "&limit=1";
   lRet = await SupabaseRead(lCmd);
-  if (lRet.length > 0)
-    gNomItineraire = lRet.data[0].msg;
   return (lRet);
 }
-
 
 //--------------------------------------------------------------------------------------------------
 // Efface l'itinéraire en cours dans la base de données

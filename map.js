@@ -96,8 +96,6 @@ function CreationMarqueurs()
   pid('imgLegendeFin').src = IconeFin.options.iconUrl;
   pid('imgLegendeFin').style.width = '20px';
   pid('imgLegendeFin').style.height = '20px';
-
-  pid('spanBottom').style.opacity = '1';
 }
 
 //--------------------------------------------------------------------------------------------------
