@@ -1,3 +1,4 @@
+// &usr=124991&url=https://mgogbhqpbqqxqhxyiwwy.supabase.co/rest/v1/table&key=sb_publishable_6uC_TPJTNLGmA3w1e2ZyXw_YgkaxjAM&admin=1
 //==================================================================================================
 // Fichier main
 // Tag 2610.18b
@@ -12,7 +13,8 @@ var gRafraichirEnCours = false;
 var gMapInitialized = false;
 var gModeAdmin = false;
 var gAffichagePositions = 'last';
-var gPrenom = "Toto";
+var gPrenom = "";
+var gNomItineraire = "(aucun itinéraire)";
 
 //----- Démarrage de l'application -----
 document.addEventListener('DOMContentLoaded', function()
@@ -85,18 +87,39 @@ async function ButLoadClick()
   input.accept = '.gpx';
 
   var content = null;
+
+  // Evènement de chargement du fichier
   input.onchange = e =>
   {
     const file = e.target.files[0];
-    if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = e =>
+    // Pas de fichier choisi
+    if (!file)
     {
-      content = e.target.result;
+      lAvancement = 4;
+    }
+
+    // Fichier choisi
+    else
+    {
+      const reader = new FileReader();
+      reader.onload = e =>
+      {
+        content = e.target.result;
+      };
+      pid('txtAdminNbPoints').innerHTML = "Lecture en cours ..";
+      reader.readAsText(file);
+
+      // Nom de fichier sans l'extension
+      gNomItineraire = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
       lAvancement = 1;
-    };
-    reader.readAsText(file);
+    }
+  };
+
+  // Gestion de l'annulation (si l'utilisateur ferme la fenêtre sans choisir)
+  input.oncancel = () =>
+  {
+    lAvancement = 2;
   };
   input.click();
 
@@ -106,37 +129,55 @@ async function ButLoadClick()
     await sleep(50);
   }
 
-  // Parsing
-  const {length, data} = parseGpxToCoords(content);
-  if (length != 0)
+  // Si un fichier a été choisi
+  if (lAvancement == 1)
   {
-    console.log(length + " points");
-    lAvancement = 2;
+    // Parsing
+    const {length, data} = parseGpxToCoords(content);
+    if (length != 0)
+    {
+      console.log(length + " points");
+      lAvancement = 2;
+    }
+    else
+    {
+      console.log("Erreur fichier");
+      lAvancement = 3;
+    }
+
+
+    // Effacement de l'itinéraire actuellement dans la base de données
+    lStatus = await SupabaseEffaceItineraire();
+
+    // Ecriture dans la base de données par bloc de 1000 points
+    const t0 = performance.now();
+    const batchSize = 1000;
+    var lStatus;
+
+    for (let i = 0; i < data.length; i += batchSize)
+    {
+      // Découpage
+      const chunk = data.slice(i, i + batchSize);
+
+      // Envoi du paquet
+      lStatus = await SupabaseWrite(chunk);
+      if (lStatus !== "OK")
+        break;
+
+      console.log("Load progression : " + i);
+    }
+
+    // Ecriture du Nom de l'itinéraire dans la base de données
+    lStatus = await SupabaseWriteNomItineraire();
+    const delta = Math.round(0.100*(performance.now() - t0))/100;
+    console.log("Ecriture " + lStatus + " (" + delta + "s)");
   }
+
+  // Pas de fichier choisi
   else
   {
-    console.log("Erreur fichier");
-    lAvancement = 3;
+    console.log("Pas de fichier choisi");
   }
-
-  // Ecriture dans la base de données par bloc de 1000 points
-  const t0 = performance.now();
-  const batchSize = 1000;
-  var lStatus;
-  for (let i = 0; i < data.length; i += batchSize)
-  {
-    // Découpage
-    const chunk = data.slice(i, i + batchSize);
-
-    // Envoi du paquet
-    lStatus = await SupabaseWrite(chunk);
-    if (lStatus !== "OK")
-      break;
-
-    console.log("Progression : " + i);
-  }
-  const delta = Math.round(0.100*(performance.now() - t0))/100;
-  console.log("Ecriture " + lStatus + " (" + delta + "s)");
 }
 
 
@@ -187,6 +228,7 @@ async function Run()
   let usrParam = "";
   let keyParam = "";
   let urlParam = "";
+  let admParam = "";
 
   // Récupération paramètres ligne d'adresse
   const queryString = window.location.search;
@@ -220,6 +262,14 @@ async function Run()
       API_KEY = keyParam;
   }
 
+  // ADMIN
+  if (lineParams.has("admin"))
+  {
+    admParam = lineParams.get("admin");
+    if (admParam == "1")
+      gModeAdmin = true;
+  }
+
   // Si tous les paramètres sont valides
   // Mode Famille directement sinon on affiche le panel des informations de connexion
   if ( (USER != "?") && (API_URL != "?") && (API_KEY != "?") )
@@ -250,7 +300,6 @@ async function InfosConnexion()
   pid('txtUsr').value = txtUsrLocal;
   pid('txtUrl').value = txtUrlLocal;
   pid('txtKey').value = txtKeyLocal;
-  pid('txtAdmin').innerHTML  = "Informations de connexion.";
   pid('panAdminConnexion').style.display = 'block';
 }
 
@@ -346,42 +395,17 @@ function PasseAdminOff()
 }
 
 //--------------------------------------------------------------------------------------------------
-// Affiche les commandes admin
+// Ajoute un 's' ou non à un texte
 //--------------------------------------------------------------------------------------------------
-function CommandesAdmin()
+function S(nombre, texte)
 {
-  const but = pid('butAdmin');
-  const pan = pid('panAdminCommandes');
-
-  // Il était inactif, on l'active
-  if (but.state != 'actif')
-  {
-    BoutonEtat('butAdmin', 'actif');
-
-    const rect = pid('map').getBoundingClientRect();
-    pan.style.display = 'block';
-    pan.style.top = (rect.top + 3) + 'px';
-    pan.style.left = (rect.left + 3) + 'px';
-    pan.style.right = '8px';
-    pan.style.bottom = '100px';   // 100px du bas en remontant
-    pan.innerHTML = "TITI";
-  }
-
-  // Il était actif, on le désactive
-  else
-  {
-    BoutonEtat('butAdmin', 'inactif');
-    pan.style.display = 'none';
-  }
+  let textefinal = nombre;
+  textefinal += " " + texte;
+  if (nombre > 1)
+    textefinal += "s";
+  return(textefinal);
 }
 
-
-//--------------------------------------------------------------------------------------------------
-// Donne des informations sur l'application
-//--------------------------------------------------------------------------------------------------
-function AdminInformations()
-{
-}
 
 //--------------------------------------------------------------------------------------------------
 // Démarrage du mode commun
@@ -393,9 +417,19 @@ async function ModeCommun()
   pid('panChargement').style.display = 'block';
 
   // Prénom et marqueurs
-  // TODO récupérer le prénom depuis la base de données
-  gPrenom = "Thierry";
+  const lecturePrenom = SupabaseReadPrenom();
+  if (lecturePrenom.status == "OK" && lecturePrenom.length > 0)
+    gPrenom = lecturePrenom.data;
+  else
+    gPrenom = "Toto";
   CreationMarqueurs();
+
+  // Nom du randonneur
+  pid('spanNom').innerHTML = "<b>" + gPrenom + "</b>";
+  pid('spanNom').style.opacity = '1';
+
+  // Lecture du nom de l'itinéraire
+  lStatus = await SupabaseReadNomItineraire();
 
   // Chargement
   var lRetChargement = "";
@@ -405,11 +439,22 @@ async function ModeCommun()
   // Chargement OK
   if (lRetChargement == "OK")
   {
+    // On efface les panels de démarrage et de chargement
+    pid('panDemarrage').style.display = 'none';
     pid('panChargement').style.display = 'none';
+
+    // Tous les boutons inactif
+    BoutonEtat('butRafraichir', 'inactif');
+    BoutonEtat('butPartager', 'inactif');
+    BoutonEtat('butAdmin', 'inactif');
+
+    // Afficher le panel principal
     pid('panAffichagePrincipal').style.display = 'flex';
 
     AfficheCarte();
     AfficherBoutonsPosition();
+
+// gItineraire = []; // DEBUG
 
     if (gItineraire.length > 0)
     {
@@ -419,8 +464,11 @@ async function ModeCommun()
     }
 
     AffichePositions();
-    CalculeDistanceTotaleEtParcourue();
-    AfficheProgression();
+    if (gItineraire.length > 0)
+    {
+      CalculeDistanceTotaleEtParcourue();
+      AfficheProgression();
+    }
 
     if (gModeAdmin)
       PasseAdminOn();
@@ -430,6 +478,8 @@ async function ModeCommun()
     console.log("Erreur chargement");
     // TODO
   }
+
+//  ButAdminClick(); // DEBUG
 }
 
 
@@ -440,11 +490,6 @@ async function ModeCommun()
 async function ChargementItineraire()
 {
   var lRet = "";
-
-  // Nom du randonneur
-  pid('spanNom').innerHTML = gPrenom;
-  pid('spanNom').style.opacity = '1';
-
   var htmlInt = "";
   var longueurItineraire = 0;
   var longueurPrev = 0;
@@ -530,6 +575,88 @@ async function ChargementItineraire()
   return(lRet);
 }
 
+//--------------------------------------------------------------------------------------------------
+// Chargement de l'itinéraire depuis la base de données - en mode Admin
+// Retourne un status
+//--------------------------------------------------------------------------------------------------
+async function ChargementItineraireAdmin()
+{
+  var lRet = "";
+  var htmlInt = "";
+  var longueurItineraire = 0;
+
+  console.log("Chargement itinéraire admin..");
+
+  // Compte le nombre de points avant de les charger
+  const lCmd = "user=eq." + USER
+             + "&type=eq.0"
+             + "&order=id.asc"
+             + "&limit=0";        // Ne charge rien
+  var { status, count } = await SupabaseCount(lCmd);
+  if (status == "OK")
+  {
+    longueurItineraire = count;
+    console.log("Nombre de points : " + longueurItineraire);
+
+    if (longueurItineraire > 0)
+    {
+      gItineraire = [];
+      let offset = 0;
+
+      // Limitation par GET
+      const batchSize = 1000;
+      while (1)
+      {
+        const lCmd = "user=eq." + USER
+                   + "&type=eq.0"
+                   + "&order=id.asc"
+                   + "&offset=" + offset
+                   + "&limit=" + batchSize;
+        var { status, length, data } = await SupabaseRead(lCmd);
+
+        // Si erreur
+        if (status != "OK")
+          break;
+
+        // Si OK
+        else
+        {
+          // Nouveaux points
+          if (length > 0)
+          {
+            gItineraire = gItineraire.concat(data);
+            console.log("Chargés : " + gItineraire.length + " points...");
+            pid('txtAdminNbPoints').innerHTML = S(gItineraire.length, "point");
+
+            // Sinon, on continue avec la prochaine page
+            offset += batchSize;
+           }
+
+          // Fin du chargement
+           else
+              break;
+        }
+      }
+
+      // Fin du chargement
+      if (status !== "OK")
+        console.log(status);
+      else
+        console.log("OK " + gItineraire.length + " points");
+      lRet = status;
+    }
+
+    // Aucun point mais ce n'est pas une erreur
+    else
+      lRet = "OK";
+  }
+  else
+    lRet = status;
+
+  pid('txtAdminNbPoints').innerHTML = S(gItineraire.length, "point");
+  return(lRet);
+}
+
 
 //--------------------------------------------------------------------------------------------------
 // Activation/Désactivation d'un bouton
@@ -538,10 +665,20 @@ function BoutonEtat(bouton, etat)
 {
   const but = pid(bouton);
   if (etat == 'actif')
-    but.style.backgroundColor = '#444'  ,  but.style.color = '#FFF' ,  but.state = 'actif';
+  {
+    but.style.backgroundColor = '#FFF';
+    but.style.color = '#000';
+    but.style.border = '2px solid #4F4';
+    but.state = 'actif';
+  }
 
   if (etat == 'inactif')
-    but.style.backgroundColor = '#FFF'  ,  but.style.color = '#000' ,  but.state = 'inactif';
+  {
+    but.style.backgroundColor = '#444';
+    but.style.color = '#FFF';
+    but.style.border = '2px solid #444';
+    but.state = 'inactif';
+  }
 }
 
 
@@ -611,8 +748,8 @@ async function AfficheProgression()
   pid('divDistances').innerHTML += " -  Restant : <span class='classTexteLarge'><b>" + lRestant + "</b></span> km";
 
   // lPourcentage
-  pid('divAvancement').innerHTML = p + "<small>%</small>";
-  pid('divAvancement').style.opacity = '1';
+  pid('txtPourcentage').innerHTML = p + "<small>%</small>";
+  pid('txtPourcentage').style.opacity = '1';
 
   // Fin d'un éventuel rafraichissement en cours
   gRafraichirEnCours = false;
@@ -748,7 +885,7 @@ async function Rafraichir()
 
     pid('txtHeurePosition').style.opacity = '0';
     pid('progression-fill').style.width = '0%';
-    pid('divAvancement').style.opacity = 0;
+    pid('txtPourcentage').style.opacity = 0;
     pid('divDistances').innerHTML = "&nbsp;";
 
     // Efface l'itinéraire et les marqueurs mais pas la carte
@@ -788,13 +925,10 @@ function ChoixCarte()
   if (pid('butChoixCarte').state != 'actif')
   {
     BoutonEtat('butChoixCarte', 'actif');
-
+    const rect = pid('panButtonsMenu').getBoundingClientRect();
     menu.style.display = 'block';
-
-    // Position du bouton
-    const rect = pid('butChoixCarte').getBoundingClientRect();
-    menu.style.top = rect.bottom + 6 + 'px';
-    menu.style.left = rect.left + 'px';
+    menu.style.top = rect.bottom + 'px';
+    menu.style.left = '10px';
 
     // Si le menu dépasse à droite de l'écran
     const menuRect = menu.getBoundingClientRect();
@@ -892,28 +1026,83 @@ function SelectionnerChoixPosition(choix)
   }
 }
 
-//--------------------------------------------------------------------------------------------------
-// Affiche une alternative si le partage natif échoue
-//--------------------------------------------------------------------------------------------------
-function AfficherFallbackPartage(texte)
-{
-  // On crée une simple boîte de dialogue avec prompt (natif et rapide)
-  // Ou on peut utiliser une zone de texte dédiée dans le HTML
-  const msg = "Copiez ce lien pour le partager :";
 
-  // Utilisation du presse-papier si disponible
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(() => {
-      alert("Lien copié dans le presse-papier !\n\n" + url);
-    }).catch(() => {
-      // Si la copie automatique échoue, on affiche le lien pour copie manuelle
-      window.prompt(msg, url);
-    });
-  } else {
-    window.prompt(msg, url);
+//========== COMMANDES ADMIN =======================================================================
+
+
+//--------------------------------------------------------------------------------------------------
+// Affiche les commandes admin
+//--------------------------------------------------------------------------------------------------
+function ButAdminClick()
+{
+  const but = pid('butAdmin');
+  const pan = pid('panAdminCommandes');
+
+  // Il était inactif, on l'active
+  if (but.state != 'actif')
+  {
+    //----- Remplissage des champs avant l'affichage -----
+    // Nb Points
+    pid('txtAdminNbPoints').innerHTML = S(gItineraire.length, "point");
+
+    // Nom itinéraire
+    pid('txtAdminNomItineraire').value = gNomItineraire;
+
+    // Prénom
+    pid('txtAdminPrenom').value = gPrenom;
+
+    //----- Le reste -----
+    // Etat du bouton et positionnement du panel
+    BoutonEtat('butAdmin', 'actif');
+    const rect = pid('panButtonsMenu').getBoundingClientRect();
+    pan.style.top = rect.bottom + 'px'; // Sous le menu
+    pan.style.display = 'block';
+  }
+
+  // Il était actif, on le désactive
+  else
+  {
+    BoutonEtat('butAdmin', 'inactif');
+    pan.style.display = 'none';
   }
 }
 
+//--------------------------------------------------------------------------------------------------
+// Charger un itinéraire
+//--------------------------------------------------------------------------------------------------
+async function ButAdminChargerClick()
+{
+  // Chargement du fichier et écriture dans la base de données
+  pid('txtAdminNbPoints').innerHTML = "Choisir le fichier ..";
+  await ButLoadClick();
+
+  // Chargement de l'itinéraire depuis la base de données
+  gItineraire = [];
+  lRetChargement = await ChargementItineraireAdmin();
+
+  // Lecture du nom de l'itinéraire
+  lStatus = await SupabaseReadNomItineraire();
+
+  // Nouvelles valeurs (le nombre de points est affiché par ChargementItineraireAdmin()
+  pid('txtAdminNomItineraire').value = gNomItineraire;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// Modifier le nom de l'itinéraire
+//--------------------------------------------------------------------------------------------------
+async function ButAdminModifierNomClick()
+{
+  // Ecriture du nom de l'itinéraire dans la base de données
+  gNomItineraire = pid('txtAdminNomItineraire').value;
+  lStatus = await SupabaseWriteNomItineraire();
+
+  // Relecture du nom de l'itinéraire
+  lStatus = await SupabaseReadNomItineraire();
+
+  // Nouvelle valeur
+  pid('txtAdminNomItineraire').value = gNomItineraire;
+}
 
 
 

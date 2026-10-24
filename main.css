@@ -42,12 +42,41 @@ body
   flex-direction: column;
 }
 
+/* Panel de démmarage */
+#panDemarrage
+{
+  margin-left: 10px;
+}
+/* Texte démarrage */
+#panDemarrage
+{
+  text-align: center;
+}
+
+/* Eléments pendant le démarrage */
+#txtTitreGPXSuivi
+{
+  font-size: 1.8em;
+  text-align: center;
+}
+
+#imgGPXSuivi
+{
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 296px;
+  width: 100%;
+  height: auto;
+}
+
 /* Conteneur principal une fois la connexion faite */
 #panAffichagePrincipal
 {
   display: none;
   flex-direction: column;
   height: 100vh;
+  margin-top: 48px;
 }
 
 #spanTitre
@@ -56,13 +85,162 @@ body
   font-weight: bold;
 }
 
+/*----- Boutons et menus -------------------------------------------------------------------------*/
+
+/* Conteneur des boutons et menus */
+#panButtonsMenu
+{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 10px;
+  padding: 5px;
+  border-bottom: 1px solid #444;
+  background-color: #CCC;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  height: 32px;
+  z-index: 1000; /* Panel des boutons et menu */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Boutons pour le mode User */
+.classBoutonsUser
+{
+  height: 32px;
+  border-radius: 5px;
+  width: 80px;
+  font-family: 'Verdana';
+  font-size: 13px;
+  z-index: 2; /* Boutons User */
+  box-shadow: none;
+  margin-bottom: 2px;
+  cursor: pointer;
+}
+
+/* Boutons pour le mode Admin */
+.classBoutonsAdmin
+{
+  height: 32px;
+  border-radius: 5px;
+  width: 80px;
+  font-family: 'Verdana';
+  font-size: 13px;
+  z-index: 2; /* Boutons Admin */
+  box-shadow: none;
+  margin-bottom: 2px;
+  cursor: pointer;
+}
+
+/* Menu pour le choix de la carte */
+#panChoixCarte
+{
+  display: none;
+  position: fixed;
+  background: #FFF;
+  border: 1px solid #888;
+  border-radius: 5px;
+  overflow: hidden;
+  padding: 5px;
+  margin: 0px;
+  box-shadow: 8px 8px 8px rgba(0, 0, 0, 0.4);
+  z-index: 1000; /* Panel choix carte */
+}
+
+/* Radiobuttons pour pouvoir les centrer */
+#panChoixCarte input[type="radio"]
+{
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+  left: -3px;
+}
+
+/* Texte du menu */
+.classTexteMenu
+{
+  margin-top: 6px;
+  margin-bottom: 5px;
+}
+
+/* Panneau des commandes admin */
+#panAdminCommandes
+{
+  display: none;
+  position: fixed;
+  background: #FFF;
+  border: 1px solid #888;
+  z-index: 1001; /* Panel Admin */
+  border-radius: 5px;
+  overflow: hidden;
+  padding: 10px;
+  box-shadow: 8px 8px 8px rgba(0, 0, 0, 0.4);
+  left: 10px;
+  width: 300px;
+  height: 300px;
+  overflow-y: auto;
+}
+
+/* Sous-titre du menu admin */
+.classAdminSTitre
+{
+  position: relative;
+  margin: 0px;
+  padding: 0px;
+  left: 5px;
+  width: 140px;
+  font-size: 1em;
+  font-weight: bold;
+}
+
+/* Info du menu admin */
+.classAdminInfo
+{
+  display: inline-block;
+  position: relative;
+  margin: 0px;
+  padding: 0px;
+  padding-top: 2px;
+  left: 5px;
+  height: 20px;
+  width: 140px;
+  border: 1px solid #FFF;
+  background-color: #FFF;
+}
+
+/* Input du menu admin */
+.classAdminInput
+{
+  position: relative;
+  margin: 0px;
+  left: 5px;
+  width: 140px;
+  color: #000;
+  font-family: verdana;
+  font-size: 13px;
+}
+
+/* Boutons du menu admin */
+.classAdminBouton
+{
+  position: absolute;
+  left: 165px;
+  width: 80px;
+  font-family: verdana;
+  font-size: 13px;
+}
+
+
+
 /*----- Admin ------------------------------------------------------------------------------------*/
 
 /* Container pour l'identification de l'admin */
 #panAdminConnexion
 {
   display: none;
-  margin-top: 20px;
+  margin-top: 0px;
 }
 
 /* Texte sur les informations de connexion */
@@ -105,16 +283,35 @@ body
 #panChargement
 {
   display: none;
-  font-style: italic;
-  border: 1px solid #FFF;
+  positions: absolute;;
+  top: 60px;
+  left: 5px;
+  width: 300px;
+  height: 100px;
+  border: 1px solid #CCC;
   box-sizing: border-box;
   padding-bottom: 20px;
 }
 
+
 /*----- Avancement progression -------------------------------------------------------------------*/
 
+#panAllProgression
+{
+  border: 2px solid #CCC;
+  border-radius: 2px;
+  background-color: #FFFFF0;
+  box-sizing: border-box;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 /* Pourcentage de l'avancement */
-#divAvancement
+#txtPourcentage
 {
   color: #FFF;
   background-color: #008;
@@ -152,7 +349,7 @@ body
   position: absolute;
   left: 0%;
   width: 100px;
-  border: 1px solid #CCC;
+  border: 1px solid #444;
   border-radius: 10px;
   background-color: #FFC;
   transform: translate(-50%, -35px);
@@ -163,7 +360,7 @@ body
   padding: 3px;
 }
 
-/* L'icône du randonneur */
+/* Curseur progression */
 #imgCurseur
 {
   position: absolute;
@@ -172,7 +369,7 @@ body
   left: 0%;
   top: -13px;
   transform: translateX(-50%);
-  z-index: 3;
+  z-index: 3; /* Curseur progression */
   opacity: 0;
   transition: left 0.5s ease;
   margin-bottom: 0px;
@@ -186,7 +383,7 @@ body
   right: 10px;
   border-bottom: 4px dotted #00F;
   radius: 4px;
-  z-index: 1;
+  z-index: 1; /* Ligne pointillée */
 }
 
 /* La ligne horizontale en trait plein */
@@ -199,7 +396,7 @@ body
   border-bottom: 4px solid #00F;
   radius: 4px;
   transition: width 0.5s ease;
-  z-index: 2;
+  z-index: 2; /* Ligne trait plein */
 }
 
 /* Labels de distance sous la barre de progression */
@@ -209,113 +406,17 @@ body
   display: flex;
   justify-content: space-between;
   margin-top: 13px;
-  font-size: 12px;
-  margin-bottom: 5px;
+  margin-bottom: 0px;
+  padding-bottom: 0px;
 }
 
 /* Distances */
 #divDistances
 {
-  height: 20px;
-  margin-left: 0px;
-  margin-right: 0px;
   text-align: center;
-  background-color: #EEE;
   color: #000;
   padding: 5px;
-  border: 1px solid #CCC;
-  border-radius: 10px;
-  margin-bottom: 10px;
-}
-
-/*----- Boutons ----------------------------------------------------------------------------------*/
-/* Conteneur des boutons */
-#panButtons
-{
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;  /* Empêche le passage à la ligne */
-  gap: 10px;          /* Espace entre les boutons */
-  margin-bottom: 0px;
-}
-
-/* Boutons pour la carte mod User */
-.classBoutonsCarte
-{
-  height: 34px;
-  border: 2px solid #444;
-  background-color: #FFF;
-  color: #000;
-  border-radius: 14px;
-  width: 80px;
-  font-family: 'Verdana';
-  font-size: 13px;
-  z-index: 2;
-  box-shadow: none;
-  margin-bottom: 2px;
-  cursor: pointer;
-}
-
-/* Boutons pour le mode Admin */
-.classBoutonsCarteAdmin
-{
-  height: 34px;
-  border: 2px solid #080;
-  background-color: #FFF;
-  color: #000;
-  border-radius: 14px;
-  width: 80px;
-  font-family: 'Verdana';
-  font-size: 13px;
-  z-index: 2;
-  box-shadow: none;
-  margin-bottom: 2px;
-  cursor: pointer;
-}
-
-/* Panneau des commandes admin */
-#panAdminCommandes
-{
-  display: none;
-  position: fixed;
-  background: #FFF;
-  border: 2px solid #080;
-  z-index: 1000;
-  border-radius: 5px;
-  overflow: hidden;
-  padding: 10px;
-  margin: 20px;
-  box-shadow: 8px 8px 8px rgba(0, 0, 0, 0.4);
-}
-
-/* Menu pour le choix de la carte */
-#panChoixCarte
-{
-  display: none;
-  position: fixed;
-  background: #FFF;
-  border: 2px solid #444;
-  z-index: 900;
-  border-radius: 5px;
-  overflow: hidden;
-  padding: 5px;
-  margin: 0px;
-  box-shadow: 8px 8px 8px rgba(0, 0, 0, 0.4);
-}
-
-/* Radiobuttons pour pouvoir les centrer */
-#panChoixCarte input[type="radio"]
-{
-  vertical-align: middle;
-  position: relative;
-  top: -1px;
-  left: -3px;
-}
-
-/* Texte du menu */
-.classTexteMenu
-{
-  margin-top: 6px;
+  margin-top: 5px;
   margin-bottom: 5px;
 }
 
@@ -333,7 +434,7 @@ body
   padding-left: 10px;
   padding-right: 10px;
   padding-bottom: 2px;
-  z-index: 2; /* 1 cran au dessus de la carte */
+  z-index: 2; /* panel des boutons sur la carte */
   border: 2px solid #AAA;
   box-sizing: border-box;
   background-color: #FFF;
@@ -376,7 +477,7 @@ body
   margin-right: 0px;
   margin-top: 0px;
   margin-bottom: 0px;
-  z-index: 10000; /* Au dessus de tout */
+  z-index: 1; /* Bottom container */
 }
 
 /* Texte bas de page */

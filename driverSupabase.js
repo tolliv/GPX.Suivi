@@ -100,7 +100,7 @@ async function ButLectureClick(pNb)
 }
 
 //--------------------------------------------------------------------------------------------------
-// Effacement des points de l'utilisateur actuel
+// Effacement tout ce qui concerne l'utilisateur actuel
 //--------------------------------------------------------------------------------------------------
 async function ButClearClick()
 {
@@ -193,6 +193,79 @@ async function SupabaseTestConnexion()
   } while(0);
   return (retStatus);
 }
+
+//--------------------------------------------------------------------------------------------------
+// Lit le prénom
+//--------------------------------------------------------------------------------------------------
+async function SupabaseReadPrenom()
+{
+  var lRet;
+  var lCmd;
+  var retStatus;
+
+  // Lecture 300
+  lCmd = "user=eq." + USER
+       + "&type=eq.300"
+       + "&order=date.desc"
+       + "&limit=1";
+  lRet = await SupabaseRead(lCmd);
+  return (lRet);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Ecrit le nom de l'itinéraire
+// Depuis la variable dans gNomItineraire
+//--------------------------------------------------------------------------------------------------
+async function SupabaseWriteNomItineraire()
+{
+  const lDate = DateSupabase();
+  const nouveauPoint =
+  {
+      date: lDate,
+      user: USER,
+      type: 302,
+      msg: gNomItineraire
+  };
+  lRet = await SupabaseWrite(nouveauPoint);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Lit le nom de l'itinéraire
+// Est mis dans gNomItineraire
+//--------------------------------------------------------------------------------------------------
+async function SupabaseReadNomItineraire()
+{
+  var lRet;
+  var lCmd;
+  var retStatus;
+
+  // Lecture 300
+  lCmd = "user=eq." + USER
+       + "&type=eq.302"
+       + "&order=date.desc"
+       + "&limit=1";
+  lRet = await SupabaseRead(lCmd);
+  if (lRet.length > 0)
+    gNomItineraire = lRet.data[0].msg;
+  return (lRet);
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// Efface l'itinéraire en cours dans la base de données
+//--------------------------------------------------------------------------------------------------
+async function SupabaseEffaceItineraire()
+{
+  // Efface l'itinéraire 0
+  const lCmd = "user=eq." + USER
+             + "&type=eq.0";
+  let lStatus = await SupabaseDelete(lCmd);
+  return(lStatus);
+}
+
+
+//====================== COMMANDES DE BASE =========================================================
+
 
 //--------------------------------------------------------------------------------------------------
 // Envoie un nouveau point dans la base de données

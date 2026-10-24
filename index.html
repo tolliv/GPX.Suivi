@@ -18,7 +18,7 @@
   <div id='panTopContainer'>
 
     <!----- PARTIE ADMIN ----->
-    <div id='panAdminConnexion2' style='display: none'>
+    <div id='panAdminConnexionOLD' style='display: none'>
       <b>Admin</b><br>
       <button id='btnSTest'       onclick='ButTestClick()'>T</button>
       <button id='btnSEnvoi'      onclick='ButEnvoiClick()'>W</button>
@@ -28,11 +28,11 @@
       <button id='btnSLoad'       onclick='ButLoadClick()'>Charge GPX</button>
     </div>
 
-    <!----- PARTIE Titre ----->
-    <div id='panTitreSuivi' style='font-size: 1.8em;'>
-      <span id='spanTitre'>GPX.Suivi</span>
-      <span id='spanNom' style='opacity: 0;'>&nbsp;</span>
-      <span id='divAvancement'></span>
+    <!----- PARTIE Informations de connexion pour Admin ----->
+    <div id='panDemarrage'>
+      <div id='txtTitreGPXSuivi'><b>GPX.Suivi</b><br></div>
+      <img id='imgGPXSuivi' src='imgGPXSuivi.png'>
+      <div id='txtDemarrage'><b>Lecture des informations en cours ..</b></div>
     </div>
 
     <!----- PARTIE Informations de connexion pour Admin ----->
@@ -40,52 +40,54 @@
       <div id='txtAdmin'></div>
       <div style='height: 20px;'></div>
       <div class='classSaisieTitre' >Adresse URL</div>
-      <input class='classSaisieTexte' id='txtUrl' type='text' placeholder=""><br>
+      <input class='classSaisieTexte' id='txtUrl' type='text' placeholder="TODO"><br>
       <div style='height: 15px;'></div>
       <div class='classSaisieTitre' >Clé</div>
-      <input class='classSaisieTexte' id='txtKey' type='text' placeholder=""><br>
+      <input class='classSaisieTexte' id='txtKey' type='text' placeholder="TODO"><br>
       <div style='height: 15px;'></div>
       <div class='classSaisieTitre' >Numéro utilisateur</div>
-      <input class='classSaisieTexte' id='txtUsr' type='text' placeholder=""><br>
+      <input class='classSaisieTexte' id='txtUsr' type='text' placeholder="TODO"><br>
       <div style='height: 20px;'></div>
       <button id='butAdminValider' onclick='ValiderAdmin()' title="Valider les informations de connexion">Valider</button>
       <div style='height: 20px;'></div>
       <div id='txtValiderErreur'></div>
     </div>
 
-    <!----- PARTIE Chargement ----->
-    <div id='panChargement'></div>
-
-    <!---------- AFFICHAGE PRINCIPAL (hors titre) ---------->
+    <!---------- AFFICHAGE PRINCIPAL (après démarrage) ---------->
     <div id='panAffichagePrincipal'>
 
-      <!----- PARTIE Nom de l'itinéraire ----->
-      <div id='txtNomItineraire' style='display: none;'>Itinéraire</div>
-
-      <!----- PARTIE Progression ----->
-      <div id='panProgression'>
-        <div id='progression-container'>
-          <span id='spanDeplacementCurseur'><img id='imgCurseur'></span>
-          <span id='txtHeurePosition'></span>
-          <div id='progression-track'></div>
-          <div id='progression-fill'></div>
-        </div>
-        <div id="progression-labels">
-          <span id='spanDistanceMin' onclick="PasseAdminOn();">0km</span><span id='spanDistanceMax' onclick='PasseAdminOff();'>0km</span>
-        </div>
-        <div id="divDistances">&nbsp;</div>
-      </div>
-
       <!----- PARTIE Boutons et menu ----->
-      <div id='panButtons'>
+      <div id='panButtonsMenu'>
         <!-- Boutons -->
-        <button class='classBoutonsCarte' id='butRafraichir' onclick='Rafraichir()' title="Rafraichir les données">Rafraichir</button>
-        <button class='classBoutonsCarte' id='butChoixCarte' onclick='ChoixCarte()' title="Changer de carte">Carte</button>
-        <button class='classBoutonsCarte' id='butPartager' onclick='Partager()' title="Partager le lien">Partager</button>
-        <button class='classBoutonsCarteAdmin' id='butAdmin' onclick='CommandesAdmin()' style='display: none;'title='TODO'>Admin</button>
+        <button class='classBoutonsUser' id='butRafraichir' onclick='Rafraichir()' title="Rafraichir les données">Rafraichir</button>
+        <button class='classBoutonsUser' id='butChoixCarte' onclick='ChoixCarte()' title="Changer de carte">Carte</button>
+        <button class='classBoutonsUser' id='butPartager' onclick='Partager()' title="Partager le lien">Partager</button>
+        <button class='classBoutonsAdmin' id='butAdmin' onclick='ButAdminClick()' style='display: none;'title='TODO'>Admin</button>
 
         <!-- Menu Admin -->
         <div id='panAdminCommandes'>
+          <div style='color: #008;'><b>Itinéraire</b></div>
+          <br>
+          <div class='classAdminSTitre'>Tracé</div>
+          <button class='classAdminBouton'id='butAdminCharger' onclick='ButAdminChargerClick()' style='left: 15px;'>Charger</button>
+          <span id='txtAdminNbPoints' style='position: relative; left: 100px; top: 2px; border: 1px solid #FFF;'></span>
+          <br>
+          <br>
+          <div class='classAdminSTitre'>Nom actuel</div>
+          <input class='classAdminInput' id='txtAdminNomItineraire' type='text' placeholder="">
+          <button class='classAdminBouton' id='butAdminModifierNom' onclick='ButAdminModifierNomClick()'>Modifier</button><br>
+          <br>
+          <div class='classAdminSTitre'>Informations</div>
+          <span class='classAdminInfo'>Effacer tout</span>
+          <button class='classAdminBouton' id='btnSClear' onclick='ButClearClick()'>Effacer</button>
+
+          <div style='height: 1px;border-bottom: 1px solid #CCC;margin-top: 20px;margin-bottom: 20px;'></div>
+
+          <div style='color: #008;'><b>Autres</b></div>
+          <br>
+          <div class='classAdminSTitre'>Prénom</div>
+          <input class='classAdminInput' id='txtAdminPrenom' type='text' placeholder="">
+          <button class='classAdminBouton' id='butAdminModifierPrenom'  onclick='ButAdminModifierPrenomClick()'>Modifier</button><br>
         </div>
 
         <!-- Menu pour la carte avec Radio Buttons -->
@@ -109,12 +111,46 @@
 
       </div>
 
+      <!----- PARTIE Titre ----->
+      <div id='panTitreSuivi' style='font-size: 1.8em;'>
+        Suivi de
+        <span id='spanTitre'></span>
+        <span id='spanNom' style='opacity: 0;'>&nbsp;</span>
+        <span id='txtPourcentage'></span>
+      </div>
+
+      <!----- PARTIE Progression (Nom itinéraire + position + distances) ----->
+      <div id='panAllProgression'>
+
+        <!----- PARTIE Nom de l'itinéraire ----->
+        <div id='txtNomItineraire' style='display: none;'>Itinéraire</div>
+
+        <!----- PARTIE Progression ----->
+        <div id='panProgression'>
+          <div id='progression-container'>
+            <span id='spanDeplacementCurseur'><img id='imgCurseur'></span>
+            <span id='txtHeurePosition'></span>
+            <div id='progression-track'></div>
+            <div id='progression-fill'></div>
+          </div>
+          <div id="progression-labels">
+            <span id='spanDistanceMin' onclick="PasseAdminOn();">0km</span><span id='spanDistanceMax' onclick='PasseAdminOff();'>0km</span>
+          </div>
+          <div id="divDistances">&nbsp;</div>
+        </div>
+      </div>
+
       <!----- PARTIE Map ----->
       <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'/>
       <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
       <script src='map.js'> </script>
       <link rel='stylesheet' type='text/css' href='map.css'>
       <div id='map'></div>
+
+      <!----- PARTIE Chargement ----->
+      <div id='panChargement'>
+      </div>
+
     </div>
   </div>
 
