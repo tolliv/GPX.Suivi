@@ -473,8 +473,7 @@ SimulationPoints();  // Pour le DEBUG
     // TODO
   }
 
-  if (DBG_LANCE_ADMIN != 0) // DEBUG
-    ButAdminClick();
+  ButAdminClick(); // DEBUG
 }
 
 
