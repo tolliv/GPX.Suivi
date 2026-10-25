@@ -1,1 +1,0 @@
-const DBG_LANCE_ADMIN = 0;
