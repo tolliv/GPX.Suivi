@@ -115,14 +115,14 @@ async function ButLoadClick()
 
       // Nom de fichier sans l'extension
       gNomItineraire = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-      lAvancement = 1;
+      lAvancement = 1; // Valeur de retour : OK */
     }
   };
 
   // Gestion de l'annulation (si l'utilisateur ferme la fenêtre sans choisir)
   input.oncancel = () =>
   {
-    lAvancement = 2;
+    lAvancement = 4; // Valeur de retour : pas de fichier choisi */
   };
   input.click();
 
@@ -140,12 +140,12 @@ async function ButLoadClick()
     if (length != 0)
     {
       console.log(length + " points");
-      lAvancement = 2;
+      lAvancement = 2;  // Valeur de retour : OK pour le parsing */
     }
     else
     {
       console.log("Erreur fichier");
-      lAvancement = 3;
+      lAvancement = 3;  // Valeur de retour : erreur de fichier */
     }
 
 
@@ -181,6 +181,7 @@ async function ButLoadClick()
   {
     console.log("Pas de fichier choisi");
   }
+  return(lAvancement);
 }
 
 
@@ -422,9 +423,12 @@ async function ModeCommun()
   // Prénom et marqueurs
   await LecturePrenom();
   console.log("Prénom = " + gPrenom);
-  pid('spanPrenom').innerHTML = "<b>" + gPrenom + "</b>";
-  pid('spanPrenom').style.opacity = '1';
+  pid('txtPrenom').innerHTML = "<b>" + gPrenom + "</b>";
+  pid('txtPrenom').style.opacity = '1';
   CreationMarqueurs();
+
+  // Chargement Positions
+  const lRetChargementPositions  = await ChargementPositions();
 
   // Lecture du nom de l'itinéraire
   await LectureNomItinéraire();
@@ -452,7 +456,11 @@ async function ModeCommun()
 
     if (gItineraire.length > 0)
     {
-SimulationPoints();  // Pour le DEBUG
+      if (0) // Pour le DEBUG
+      {
+        pid('butAdminTstClear').style.display = 'inline-block';  // Pour le DEBUG
+        pid('butAdminAddPoint').style.display = 'inline-block';  // Pour le DEBUG
+      }
       AfficheRattachements();
       AfficheItineraire();
     }
@@ -472,8 +480,85 @@ SimulationPoints();  // Pour le DEBUG
     console.log("Erreur chargement");
     // TODO
   }
+}
 
-  ButAdminClick(); // DEBUG
+
+//--------------------------------------------------------------------------------------------------
+// Chargement des positions depuis la base de données
+//--------------------------------------------------------------------------------------------------
+async function ChargementPositions()
+{
+  var lRet = "";
+  var htmlInt = "";
+  var longueurPositions = 0;
+  var longueurPrev = 0;
+
+  console.log("Chargement positions..");
+
+  // Compte le nombre de points avant de les charger
+  const lCmd = "user=eq." + USER
+             + "&type=eq.100"     // Type trace
+             + "&order=id.asc"
+             + "&limit=0";        // Ne charge rien
+  var { status, count } = await SupabaseCount(lCmd);
+  if (status == "OK")
+  {
+    longueurPositions = count;
+    console.log("Nombre de points : " + longueurPositions);
+    if (longueurPositions > 0)
+    {
+      gPositions = [];
+      let offset = 0;
+
+      // Limitation par GET
+      const batchSize = 1000;
+      while (1)
+      {
+        const lCmd = "user=eq." + USER
+                   + "&type=eq.100"     // Type trace
+                   + "&order=id.asc"
+                   + "&offset=" + offset
+                   + "&limit=" + batchSize;
+        var { status, length, data } = await SupabaseRead(lCmd);
+
+        // Si erreur
+        if (status != "OK")
+          break;
+
+        // Si OK
+        else
+        {
+          // Nouveaux points
+          if (length > 0)
+          {
+            gPositions = gPositions.concat(data);
+            longueurPrev = gPositions.length;
+
+            // Sinon, on continue avec la prochaine page
+            offset += batchSize;
+           }
+
+          // Fin du chargement
+           else
+              break;
+        }
+      }
+
+      // Fin du chargement
+      if (status !== "OK")
+        console.log(status);
+      else
+        console.log("Chargement positions OK " + gPositions.length + " points");
+      lRet = status;
+    }
+
+    // Aucun point mais ce n'est pas une erreur
+    else
+      lRet = "OK";
+  }
+  else
+    lRet = status;
+  return(lRet);
 }
 
 
@@ -534,7 +619,6 @@ async function ChargementItineraire()
           if (length > 0)
           {
             gItineraire = gItineraire.concat(data);
-            console.log("Chargés : " + gItineraire.length + " points...");
             for (let x = longueurPrev; x < gItineraire.length; x++)
             {
               pid('panChargement').innerHTML = htmlInt + "<b>"+ Math.round(100*x/longueurItineraire) + "%</b>";
@@ -556,7 +640,7 @@ async function ChargementItineraire()
       if (status !== "OK")
         console.log(status);
       else
-        console.log("OK " + gItineraire.length + " points");
+        console.log("Chargement itinéraire OK " + gItineraire.length + " points");
       lRet = status;
     }
 
@@ -566,6 +650,8 @@ async function ChargementItineraire()
   }
   else
     lRet = status;
+
+  pid('panChargement').style.display = 'none';
   return(lRet);
 }
 
@@ -619,7 +705,6 @@ async function ChargementItineraireAdmin()
           if (length > 0)
           {
             gItineraire = gItineraire.concat(data);
-            console.log("Chargés : " + gItineraire.length + " points...");
             pid('txtAdminNbPoints').innerHTML = S(gItineraire.length, "point");
 
             // Sinon, on continue avec la prochaine page
@@ -695,8 +780,16 @@ async function AfficheProgression()
   pid('progression-fill').style.width = p + '%';
 
   // Position sur la barre de progression
-  pid('imgCurseur').style.opacity = '1';
-  pid('imgCurseur').style.left = p + '%';
+  if (gPositions.length > 0)
+  {
+    pid('imgCurseur').style.opacity = '1';
+    pid('imgCurseur').style.left = p + '%';
+  }
+  else
+  {
+    pid('imgCurseur').style.opacity = '0';
+    pid('imgCurseur').style.left = p + '%';
+  }
 
   // Si <> 0, On attend la fin de déplacement de la position pour afficher la date
   var flagFini = false;
@@ -719,37 +812,69 @@ async function AfficheProgression()
     await sleep(100);
   }
 
-  // Texte date et heure au-dessus
-  const lDate = "<b>Aujourd'hui</b><br>18h15";
-  pid('txtHeurePosition').innerHTML = lDate;
+  //----- S'il y a des positions -----
+  if (gPositions.length > 0)
+  {
+    // On récupère la dernière position
+    const pos = gPositions[gPositions.length - 1];
+    const lDate = (pos.date).toString();
+    const lDateToday = DateSupabase().toString();
 
-  const containerWidth = pid('progression-container').offsetWidth;
-  const minPx = 42;
-  const maxPx = containerWidth-42;
+    // Si aujourd'hui
+    if (lDateToday.substring(0,6) == lDate.substring(0,6))
+    {
+      pid('txtHeurePosition').innerHTML = "<b>Aujourd'hui</b>";
+    }
 
-  // Conversion du pourcentage p en pixels
-  let targetPx = (p / 100) * containerWidth;
+    // Sinon on met la date complète
+    else
+    {
+      pid('txtHeurePosition').innerHTML = "<b>" + lDate + "</b>";
+    }
 
-  // On contraint la position (Clamp)
-  if (targetPx < minPx) targetPx = minPx;
-  if (targetPx > maxPx) targetPx = maxPx;
+    // Heure
+    pid('txtHeurePosition').innerHTML += "<br>" + lDate.substring(6,8) + "h" + lDate.substring(8,10);
 
-  // On applique la position en pixels
-  pid('txtHeurePosition').style.left = targetPx + 'px';
-  pid('txtHeurePosition').style.opacity = '1';
+    // Image du curseur
+    if (pos.poi == 1) // Début
+      pid('imgCurseur').src = IconeDebut.options.iconUrl;
+    if (pos.poi == 2) // Position
+      pid('imgCurseur').src = IconePosition.options.iconUrl;
+    if (pos.poi == 3) // Bivouac
+      pid('imgCurseur').src = IconeBivouac.options.iconUrl;
+    if (pos.poi == 4) // Fin
+      pid('imgCurseur').src = IconeFin.options.iconUrl;
 
-  pid('divDistances').innerHTML  = "Parcouru : <span class='classTexteLarge'><b>" + lParcourue + "</b></span> km";
-  pid('divDistances').innerHTML += " -  Restant : <span class='classTexteLarge'><b>" + lRestant + "</b></span> km";
+    const containerWidth = pid('progression-container').offsetWidth;
+    const minPx = 42;
+    const maxPx = containerWidth-42;
 
-  // lPourcentage
-  pid('txtPourcentage').innerHTML = p + "<small>%</small>";
-  pid('txtPourcentage').style.opacity = '1';
+    // Conversion du pourcentage p en pixels
+    let targetPx = (p / 100) * containerWidth;
 
-  // Fin d'un éventuel rafraichissement en cours
-  gRafraichirEnCours = false;
+    // On contraint la position (Clamp)
+    if (targetPx < minPx) targetPx = minPx;
+    if (targetPx > maxPx) targetPx = maxPx;
 
-  // Bouton désactivé
-  BoutonEtat('butRafraichir', 'inactif');
+    // On applique la position en pixels
+    pid('txtHeurePosition').style.left = targetPx + 'px';
+    pid('txtHeurePosition').style.opacity = '1';
+
+    // lPourcentage
+    pid('txtPourcentage').innerHTML = p + "<small>%</small>";
+    pid('txtPourcentage').style.opacity = '1';
+
+    pid('divDistances').innerHTML  = "Parcouru : <span class='classTexteLarge'><b>" + lParcourue + "</b></span> km";
+    pid('divDistances').innerHTML += " -  Restant : <span class='classTexteLarge'><b>" + lRestant + "</b></span> km";
+  }
+
+  //----- S'il n'y a pas de position -----
+  else
+  {
+    pid('divDistances').innerHTML  = "(Aucune position)";
+    pid('txtPourcentage').style.opacity = '0';
+    pid('txtHeurePosition').style.opacity = '0';
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -762,7 +887,10 @@ function CalculeDistanceTotaleEtParcourue()
   const R = 6371;                                                   // Rayon moyen de la Terre en km
 
   if (gItineraire.length < 2) return;
-  const dernierePosition = gPositions[gPositions.length - 1].numeroPointItineraire;;
+
+  let dernierePosition = 0;
+  if (gPositions.length > 0)
+    dernierePosition = gPositions[gPositions.length - 1].numeroPointItineraire;;
 
   // Parcourt tous les points de l'itinéraire
   for (let i = 0; i < gItineraire.length - 1; i++)
@@ -861,14 +989,13 @@ async function Rafraichir()
   if (gRafraichirEnCours == false)
   {
     gRafraichirEnCours = true;
-
-    // Bouton activé
     BoutonEtat('butRafraichir', 'actif');
 
-    // Mémorise vue actuelle
+    // Mémorise vue actuelle avant de rafraichir
     gCurrentZoom = map.getZoom();
     gCurrentCenter = map.getCenter();
 
+    //---------- Remet tout à 0 ----------
     // Remet les curseurs à 0 rapidement
     const backupTransitionBarre = pid('progression-fill').style.transition;
     const backupTransitionImage = pid('imgCurseur').style.transition;
@@ -897,24 +1024,28 @@ async function Rafraichir()
     pid('progression-fill').style.transition = backupTransitionBarre;
     pid('imgCurseur').style.transition = backupTransitionImage;
 
-    // Relire tout
-    LecturePrenom();
+    //---------- Relire tout ----------
+    await LecturePrenom();
+    pid('txtPrenom').innerHTML = "<b>" + gPrenom + "</b>";
     CreationMarqueurs();
-    LectureNomItinéraire();
-    const lRetChargement = await ChargementItineraire();
+    await LectureNomItinéraire();
+    const lRetChargementItineraire = await ChargementItineraire();
+    const lRetChargementPositions  = await ChargementPositions();
     InactivationBoutons();
 
-    if (gItineraire.length > 0)
-    {
-SimulationPoints();  // Pour le DEBUG
-      AfficheRattachements();
-      AfficheItineraire();
-    }
+    if (gItineraire.length > 0) AfficheRattachements();
+    if (gItineraire.length > 0) AfficheItineraire();
 
     AffichePositions();
-    CalculeDistanceTotaleEtParcourue();
-    AfficheProgression();
+    if (gItineraire.length > 0) CalculeDistanceTotaleEtParcourue();
+    if (gItineraire.length > 0) AfficheProgression();
   }
+
+  // Fin du rafraichissement
+  gRafraichirEnCours = false;
+
+  // Bouton désactivé
+  BoutonEtat('butRafraichir', 'inactif');
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1156,20 +1287,32 @@ function ButAdminClick()
 //--------------------------------------------------------------------------------------------------
 async function ButAdminChargerClick()
 {
+  pid('butAdminCharger').style.backgroundColor = '#FC8';
+
   // Chargement du fichier et écriture dans la base de données
+  const lSave = pid('txtAdminNbPoints').innerHTML;
   pid('txtAdminNbPoints').innerHTML = "Choisir le fichier ..";
-  await ButLoadClick();
+  const lRet = await ButLoadClick();
 
-  // Chargement de l'itinéraire depuis la base de données
-  gItineraire = [];
-  lRetChargement = await ChargementItineraireAdmin();
+  console.log("lRet = " + lRet);
 
-  // Lecture du nom de l'itinéraire
-  lStatus = await SupabaseReadNomItineraire();
-  gNomItineraire = lStatus.data[0].msg;
+  // Rechargement de l'itinéraire depuis la base de données si tout s'est bien passé
+  if (lRet ==2)
+  {
+    gItineraire = [];
+    lRetChargement = await ChargementItineraireAdmin();
 
-  // On doit rafraichir
-  gDoitEtreRafraichi = true;
+    // Lecture du nom de l'itinéraire
+    lStatus = await SupabaseReadNomItineraire();
+    gNomItineraire = lStatus.data[0].msg;
+    pid('txtAdminNomItineraire').value = gNomItineraire;
+
+    // On doit rafraichir
+    gDoitEtreRafraichi = true;
+  }
+  else
+    pid('txtAdminNbPoints').innerHTML = lSave;
+  pid('butAdminCharger').style.backgroundColor = '#DDD';
 }
 
 
@@ -1178,6 +1321,8 @@ async function ButAdminChargerClick()
 //--------------------------------------------------------------------------------------------------
 async function ButAdminModifierNomClick()
 {
+  pid('butAdminModifierNom').style.backgroundColor = '#FC8';
+
   // Ecriture du nom de l'itinéraire dans la base de données
   nouveau = pid('txtAdminNomItineraire').value;
   lStatus = await SupabaseWriteNomItineraire(nouveau);
@@ -1189,8 +1334,10 @@ async function ButAdminModifierNomClick()
   else
     gNomItineraire = NOM_ITINEAIRE_DEFAUT;
 
-  // On doit rafraichir
+  // Affichage
+  await sleep(100);
   gDoitEtreRafraichi = true;
+  pid('butAdminModifierNom').style.backgroundColor = '#DDD';
 }
 
 
@@ -1199,6 +1346,8 @@ async function ButAdminModifierNomClick()
 //--------------------------------------------------------------------------------------------------
 async function ButAdminModifierPrenomClick()
 {
+  pid('butAdminModifierPrenom').style.backgroundColor = '#FC8';
+
   // Ecriture du Prénom de l'utilisateur dans la base de données
   const nouveau = pid('txtAdminPrenom').value;
   lStatus = await SupabaseWritePrenom(nouveau);
@@ -1207,14 +1356,177 @@ async function ButAdminModifierPrenomClick()
   lStatus = await SupabaseReadPrenom();
   gPrenom = lStatus.data[0].msg;
 
-  // On doit rafraichir
+  // Affichage
+  await sleep(100);
   gDoitEtreRafraichi = true;
+  pid('butAdminModifierPrenom').style.backgroundColor = '#DDD';
 }
 
+//--------------------------------------------------------------------------------------------------
+// Effacer les informations
+//--------------------------------------------------------------------------------------------------
+async function ButAdminEffacerClick()
+{
+  pid('butAdminEffacer').style.backgroundColor = '#FC8';
+
+  // Effacement de la base de données
+  // Itinéraire
+  // Positions
+  // Prénom
+  // Nom itinéraire
+  SupabaseClearAllInformations();
+
+  // Effacement variables locales
+  gItineraire = [];
+  gPositions = [];
+  pid('txtAdminNbPoints').innerHTML = S(gItineraire.length, "point");
+  pid('txtAdminNomItineraire').value = NOM_ITINEAIRE_DEFAUT;
+  pid('txtAdminPrenom').value = PRENOM_DEFAUT;
+
+  // Affichage
+  await sleep(100);
+  gDoitEtreRafraichi = true;
+  pid('butAdminEffacer').style.backgroundColor = '#DDD';
+}
 
 //==================================================================================================
 
+function ButAdminTstClear()
+{
+}
 
+//--------------------------------------------------------------------------------------------------
+// Ajout d'un point par raport au tracé
+//--------------------------------------------------------------------------------------------------
+async function ButAdminTstAddPoint()
+{
+  //----- Parcourt l'itinéraire pour ajouter une position -----
+  const increment = Math.floor(gItineraire.length / 9);
+  var nb = 0;
+  for (let i = 0; i < (gItineraire.length - 0*increment); i++)
+  {
+
+    // Nouvelle position possible
+    if (i%increment == 0)
+    {
+      nb++;
+
+      // On ne met pas plus de positions
+      if (nb == 9)
+        break;
+
+      // On mémorise cette position
+      if (nb > gPositions.length)
+      {
+        var lLigne = {...gItineraire[i]};
+          console.log("Coordonnées mémorisées: ", lLigne.lat, lLigne.lon);
+
+        // POINT 1
+        if (nb == 1)
+        {
+          lLigne.lat += 0.000;
+          lLigne.lon -= 0.005;
+          const t0 = performance.now();
+          const nouveauPoint =
+          {
+              date: DateSupabase(),    // Format personnalisé (2026/10/11 09:31:12)
+              user: USER,
+              type: 100,               // Trace
+              lat:  lLigne.lat,
+              lon:  lLigne.lon,
+              alt:  1234,
+              prec: 5,
+              poi:  1,                // Début
+              msg: "Départ de la randonnée"
+          };
+
+          // Ecriture
+          const lStatus = await SupabaseWrite(nouveauPoint);
+          const delta = Math.round(0.100*(performance.now() - t0))/100;
+          console.log("Ecriture " + lStatus + " (" + delta + "s)");
+        }
+
+        // POINT 2..5
+        if ((nb >= 2) && (nb <= 5))
+        {
+          lLigne.lat += 0.000;
+          lLigne.lon -= 0.000;
+          const t0 = performance.now();
+          const nouveauPoint =
+          {
+              date: DateSupabase(),    // Format personnalisé (2026/10/11 09:31:12)
+              user: USER,
+              type: 100,               // Trace
+              lat:  lLigne.lat,
+              lon:  lLigne.lon,
+              alt:  1234,
+              prec: 5,
+              poi:  2,                // Point normal
+              msg: "Tout va bien au point n°" + nb
+          };
+
+          // Ecriture
+          const lStatus = await SupabaseWrite(nouveauPoint);
+          const delta = Math.round(0.100*(performance.now() - t0))/100;
+          console.log("Ecriture " + lStatus + " (" + delta + "s)");
+        }
+
+        // POINT 6
+        if (nb == 6)
+        {
+          lLigne.lat += 0.005;
+          lLigne.lon -= 0.000;
+          const t0 = performance.now();
+          const nouveauPoint =
+          {
+              date: DateSupabase(),    // Format personnalisé (2026/10/11 09:31:12)
+              user: USER,
+              type: 100,               // Trace
+              lat:  lLigne.lat,
+              lon:  lLigne.lon,
+              alt:  1250,
+              prec: 6,
+              poi:  3,                // Bivouac
+              msg: "C'est l'heure de faire dodo.\nEt ça va faire du bien\n" + nb
+          };
+
+          // Ecriture
+          const lStatus = await SupabaseWrite(nouveauPoint);
+          const delta = Math.round(0.100*(performance.now() - t0))/100;
+          console.log("Ecriture " + lStatus + " (" + delta + "s)");
+        }
+
+        // POINT 7..8
+        if ((nb >= 7) && (nb <= 8))
+        {
+          lLigne.lat += 0.000;
+          lLigne.lon -= 0.000;
+          const t0 = performance.now();
+          const nouveauPoint =
+          {
+              date: DateSupabase(),    // Format personnalisé (2026/10/11 09:31:12)
+              user: USER,
+              type: 100,               // Trace
+              lat:  lLigne.lat,
+              lon:  lLigne.lon,
+              alt:  1250,
+              prec: 6,
+              poi:  2,                // Point normal
+              msg: "Ça continue\n" + nb
+          };
+
+          // Ecriture
+          const lStatus = await SupabaseWrite(nouveauPoint);
+          const delta = Math.round(0.100*(performance.now() - t0))/100;
+          console.log("Ecriture " + lStatus + " (" + delta + "s)");
+        }
+
+        // 1 point à la fois
+        break;
+      }
+    }
+  }
+}
 
 //--------------------------------------------------------------------------------------------------
 // Simulation des points de suivi

@@ -79,7 +79,7 @@ body
   margin-top: 48px;
 }
 
-#spanTitre
+#txtTitre
 {
   background-color: #FFF;
   font-weight: bold;
@@ -230,6 +230,13 @@ body
   width: 80px;
   font-family: verdana;
   font-size: 13px;
+  background-color: #DDD;
+  box-shadow: none;
+  border-radius: 5px;
+  padding: 2px;
+  cursor: pointer;
+  border: 1px solid #CCC;
+  box-sizing: border-box;
 }
 
 
@@ -288,7 +295,7 @@ body
   left: 5px;
   width: 300px;
   height: 100px;
-  border: 1px solid #CCC;
+  border: 1px solid #FFF;
   box-sizing: border-box;
   padding-bottom: 20px;
 }

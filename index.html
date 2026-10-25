@@ -58,36 +58,45 @@
 
       <!----- PARTIE Boutons et menu ----->
       <div id='panButtonsMenu'>
-        <!-- Boutons -->
-        <button class='classBoutonsUser' id='butRafraichir' onclick='Rafraichir()' title="Rafraichir les données">Rafraichir</button>
-        <button class='classBoutonsUser' id='butChoixCarte' onclick='ChoixCarte()' title="Changer de carte">Carte</button>
-        <button class='classBoutonsUser' id='butPartager' onclick='Partager()' title="Partager le lien">Partager</button>
-        <button class='classBoutonsAdmin' id='butAdmin' onclick='ButAdminClick()' style='display: none;'title='TODO'>Admin</button>
+
+        <!-- Boutons sur la barre du haut -->
+        <div id='panBoutonsDuHaut'>
+          <button id='butRafraichir' class='classBoutonsUser' onclick='Rafraichir()' title="Rafraichir les données">Rafraichir</button>
+          <button id='butChoixCarte' class='classBoutonsUser' onclick='ChoixCarte()' title="Changer de carte">Carte</button>
+          <button id='butPartager' class='classBoutonsUser' onclick='Partager()' title="Partager le lien">Partager</button>
+          <button id='butAdmin' class='classBoutonsAdmin' onclick='ButAdminClick()' style='display: none;'title='TODO'>Admin</button>
+          <br>
+          <button id='butAdminTstClear' onclick='ButAdminTstClear()' style='display: none;'title='Efface positions'>C</button>
+          <button id='butAdminAddPoint' onclick='ButAdminTstAddPoint()' style='display: none;'title='Ajoute un point'>+1</button>
+        </div>
 
         <!-- Menu Admin -->
         <div id='panAdminCommandes'>
           <div style='color: #008;'><b>Itinéraire</b></div>
           <br>
           <div class='classAdminSTitre'>Tracé</div>
-          <button class='classAdminBouton'id='butAdminCharger' onclick='ButAdminChargerClick()' style='left: 15px;'>Charger</button>
-          <span id='txtAdminNbPoints' style='position: relative; left: 100px; top: 3px; border: 1px solid #FFF;'></span>
+            <button id='butAdminCharger' class='classAdminBouton' onclick='ButAdminChargerClick()' style='left: 15px;'>Charger</button>
+            <span id='txtAdminNbPoints' style='position: relative; left: 100px; top: 3px; border: 1px solid #FFF;'></span>
           <br>
           <br>
           <div class='classAdminSTitre'>Nom actuel</div>
-          <input class='classAdminInput' id='txtAdminNomItineraire' type='text' placeholder="">
-          <button class='classAdminBouton' id='butAdminModifierNom' onclick='ButAdminModifierNomClick()'>Modifier</button><br>
+          <input id='txtAdminNomItineraire' class='classAdminInput' type='text' placeholder="">
+          <button id='butAdminModifierNom' class='classAdminBouton' onclick='ButAdminModifierNomClick()'>Modifier</button><br>
           <br>
           <div class='classAdminSTitre'>Informations</div>
           <span class='classAdminInfo'>Itinéraire + Positions</span>
-          <button class='classAdminBouton' id='btnSClear' onclick='ButClearClick()'>Effacer</button>
+          <button id='butAdminEffacer' class='classAdminBouton' onclick='ButAdminEffacerClick()'>Effacer</button>
 
           <div style='height: 1px;border-bottom: 1px solid #CCC;margin-top: 20px;margin-bottom: 20px;'></div>
 
           <div style='color: #008;'><b>Autres</b></div>
           <br>
           <div class='classAdminSTitre'>Prénom</div>
-          <input class='classAdminInput' id='txtAdminPrenom' type='text' placeholder="">
-          <button class='classAdminBouton' id='butAdminModifierPrenom'  onclick='ButAdminModifierPrenomClick()'>Modifier</button><br>
+          <input id='txtAdminPrenom' class='classAdminInput' type='text' placeholder="">
+          <button id='butAdminModifierPrenom' class='classAdminBouton' onclick='ButAdminModifierPrenomClick()'>Modifier</button><br>
+          <br>
+          <br>
+          La mise à jour sera faite à la fermeture de ce menu.
         </div>
 
         <!-- Menu pour la carte avec Radio Buttons -->
@@ -114,8 +123,8 @@
       <!----- PARTIE Titre ----->
       <div id='panTitreSuivi' style='font-size: 1.8em;'>
         Suivi de
-        <span id='spanTitre'></span>
-        <span id='spanPrenom' style='opacity: 0;'>&nbsp;</span>
+        <span id='txtTitre'></span>
+        <span id='txtPrenom' style='opacity: 0;'>&nbsp;</span>
         <span id='txtPourcentage'></span>
       </div>
 

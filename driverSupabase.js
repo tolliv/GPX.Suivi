@@ -102,7 +102,7 @@ async function ButLectureClick(pNb)
 //--------------------------------------------------------------------------------------------------
 // Effacement tout ce qui concerne l'utilisateur actuel
 //--------------------------------------------------------------------------------------------------
-async function ButClearClick()
+async function SupabaseClearAllInformations()
 {
   const t0 = performance.now();
   const lCmd = "user=eq." + USER;

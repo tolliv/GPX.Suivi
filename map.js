@@ -96,22 +96,33 @@ function AfficheItineraire()
       latLngs.push(coord);
     }
 
-    // Dernier point de suivi
-    const lastPosition = gPositions[gPositions.length - 1];
-    const indexCoupure = lastPosition.numeroPointItineraire;
-    const cheminParcouru = latLngs.slice(0, indexCoupure + 1);
-    const cheminRestant = latLngs.slice(indexCoupure);
+    var lastPosition;
+    var indexCoupure;
+    var cheminParcouru;
+    var cheminRestant = latLngs;
 
-    // Affichage de la partie parcourue (Trait plein)
-    const traceParcourue = L.polyline(cheminParcouru, {
-        color: '#00F',
-        weight: 4,
-        opacity: 1
-    }).addTo(map);
+    //-----  Si on a des points de position -----
+    if (gPositions.length > 0)
+    {
+      // Dernier point de suivi
+      lastPosition = gPositions[gPositions.length - 1];
+      indexCoupure = lastPosition.numeroPointItineraire;
+      cheminParcouru = latLngs.slice(0, indexCoupure + 1);
+      cheminRestant = latLngs.slice(indexCoupure);
+
+      // Affichage de la partie parcourue (Trait plein)
+      const traceParcourue = L.polyline(cheminParcouru,
+      {
+          color: '#00F',
+          weight: 4,
+          opacity: 1
+      }).addTo(map);
+    }
 
     // Affichage de la partie restante (Pointillés)
     if (cheminRestant.length > 1) {
-        const traceRestante = L.polyline(cheminRestant, {
+        const traceRestante = L.polyline(cheminRestant,
+        {
             color: '#00F',
             weight: 4,
             opacity: 1,
@@ -123,6 +134,32 @@ function AfficheItineraire()
     const bounds = L.polyline(latLngs).getBounds();
     map.fitBounds(bounds);
   }
+}
+
+//--------------------------------------------------------------------------------------------------
+// Conversion date : 261011093112 pour 11/10/2026 9h31
+// Retourne une chaine
+//--------------------------------------------------------------------------------------------------
+function DecodeDate(date)
+{
+  const d = date.toString();
+
+  // Tableau des mois abrégés
+  const moisNoms = ["janv", "févr", "mars", "avr", "mai", "juin",
+                    "juil", "août", "sept", "oct", "nov", "déc"];
+
+  // Extraction des segments
+  const annee = "20" + d.substring(0, 2);
+  const m     = d.substring(2, 4);
+  const mois  = moisNoms[Number(m) - 1];
+  const jour  = d.substring(4, 6);
+
+  const heure = parseInt(d.substring(6, 8), 10);
+  const min   = d.substring(8, 10);
+
+  // Retourne la chaîne formatée
+  const lRet = jour + " " + mois + " " + annee + " à " + heure + "h" + min;
+  return(lRet);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -165,11 +202,21 @@ function AffichePositions()
         // Prend en compte les markers dans les limites
         bounds.extend([pos.lat, pos.lon]);
 
+        // Récupération des données
+        let lMsg = "";
+
+        const lDate = DecodeDate(pos.date);
+        lMsg += "<b><u>" + lDate + "</b></u><br>";
+        lMsg += "(" + pos.lat + "," + pos.lon + ")<br>";
+        lMsg += "Alt: " + pos.alt + "m<br>";
+        lMsg += "Précision: " + pos.prec + "m<br>";
+        lMsg += "<span style='font-size: 11px;'><i>" + pos.msg + "</i></span>";
+
         // Création de la Bulle
-        marker.bindPopup(pos.msg,
+        marker.bindPopup(lMsg,
         {
             className: 'custom-popup',
-            maxWidth: 500,
+            maxWidth: 300,
             closeButton: false,
         });
       }
