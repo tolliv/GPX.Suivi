@@ -3,6 +3,8 @@
 // Fichier main
 // Tag 2610.18b
 //==================================================================================================
+const NOM_ITINEAIRE_DEFAUT = "(aucun itinéraire)";
+const PRENOM_DEFAUT = "Toto";
 var gItineraire = [];
 var gPositions = [];
 var gDistanceTotaleItineraire = 0;
@@ -13,8 +15,9 @@ var gRafraichirEnCours = false;
 var gMapInitialized = false;
 var gModeAdmin = false;
 var gAffichagePositions = 'last';
-var gPrenom = "";
-var gNomItineraire = "(aucun itinéraire)";
+var gPrenom = PRENOM_DEFAUT;
+var gNomItineraire = NOM_ITINEAIRE_DEFAUT;
+var gDoitEtreRafraichi = false;
 
 //----- Démarrage de l'application -----
 document.addEventListener('DOMContentLoaded', function()
@@ -417,26 +420,18 @@ async function ModeCommun()
   pid('panChargement').style.display = 'block';
 
   // Prénom et marqueurs
-  const lecture = await SupabaseReadPrenom();
-  if (lecture.status == "OK" && lecture.length > 0)
-    gPrenom = lecture.data[0].msg;
-  else
-    gPrenom = "Toto";
-  CreationMarqueurs();
-
-  // Prénom de l'utilisateur
+  await LecturePrenom();
+  console.log("Prénom = " + gPrenom);
   pid('spanPrenom').innerHTML = "<b>" + gPrenom + "</b>";
   pid('spanPrenom').style.opacity = '1';
+  CreationMarqueurs();
 
   // Lecture du nom de l'itinéraire
-  lStatus = await SupabaseReadNomItineraire();
-  if (lStatus.status == "OK" && lStatus.length > 0)
-    gNomItineraire = lStatus.data[0].msg;
+  await LectureNomItinéraire();
+  console.log("Nom itinéraire = " + gNomItineraire);
 
-  // Chargement
-  var lRetChargement = "";
-  lRetChargement = await ChargementItineraire();
-  console.log("Chargement statut : " + lRetChargement);
+  // Chargement itinéraire
+  const lRetChargement = await ChargementItineraire();
 
   // Chargement OK
   if (lRetChargement == "OK")
@@ -446,9 +441,7 @@ async function ModeCommun()
     pid('panChargement').style.display = 'none';
 
     // Tous les boutons inactif
-    BoutonEtat('butRafraichir', 'inactif');
-    BoutonEtat('butPartager', 'inactif');
-    BoutonEtat('butAdmin', 'inactif');
+    InactivationBoutons();
 
     // Afficher le panel principal
     pid('panAffichagePrincipal').style.display = 'flex';
@@ -457,11 +450,9 @@ async function ModeCommun()
     pid('spanBottom').style.opacity = '1';
     AfficherBoutonsPosition();
 
-// gItineraire = []; // DEBUG
-
     if (gItineraire.length > 0)
     {
-      SimulationPoints();  // Pour le DEBUG
+SimulationPoints();  // Pour le DEBUG
       AfficheRattachements();
       AfficheItineraire();
     }
@@ -482,7 +473,8 @@ async function ModeCommun()
     // TODO
   }
 
-//  ButAdminClick(); // DEBUG
+  if (DBG_LANCE_ADMIN != 0) // DEBUG
+    ButAdminClick();
 }
 
 
@@ -862,7 +854,7 @@ function AfficheRattachements()
 }
 
 //--------------------------------------------------------------------------------------------------
-// Rafraichir la carte, l'itinéraire et les points de suivi
+// Rafraichir tout
 //--------------------------------------------------------------------------------------------------
 async function Rafraichir()
 {
@@ -906,17 +898,98 @@ async function Rafraichir()
     pid('progression-fill').style.transition = backupTransitionBarre;
     pid('imgCurseur').style.transition = backupTransitionImage;
 
-    // Relire la base de données Position
-    // TODO
+    // Relire tout
+    LecturePrenom();
+    CreationMarqueurs();
+    LectureNomItinéraire();
+    const lRetChargement = await ChargementItineraire();
+    InactivationBoutons();
 
-    AfficheRattachements();
-    AfficheItineraire();
+    if (gItineraire.length > 0)
+    {
+SimulationPoints();  // Pour le DEBUG
+      AfficheRattachements();
+      AfficheItineraire();
+    }
+
     AffichePositions();
     CalculeDistanceTotaleEtParcourue();
     AfficheProgression();
   }
 }
 
+//--------------------------------------------------------------------------------------------------
+// Met tous les boutons inactifs
+//--------------------------------------------------------------------------------------------------
+function InactivationBoutons()
+{
+  BoutonEtat('butRafraichir', 'inactif');
+  BoutonEtat('butPartager', 'inactif');
+  BoutonEtat('butAdmin', 'inactif');
+}
+
+//--------------------------------------------------------------------------------------------------
+// Lecture du nom de l'itinéraire
+//--------------------------------------------------------------------------------------------------
+async function LectureNomItinéraire()
+{
+  lStatus = await SupabaseReadNomItineraire();
+  if (lStatus.status == "OK" && lStatus.length > 0)
+    gNomItineraire = lStatus.data[0].msg;
+  else
+    gNomItineraire = NOM_ITINEAIRE_DEFAUT;
+}
+
+//--------------------------------------------------------------------------------------------------
+// Lit le Prénom
+//--------------------------------------------------------------------------------------------------
+async function LecturePrenom()
+{
+  const lecture = await SupabaseReadPrenom();
+  if (lecture.status == "OK" && lecture.length > 0)
+    gPrenom = lecture.data[0].msg;
+  else
+    gPrenom = PRENOM_DEFAUT;
+}
+
+//--------------------------------------------------------------------------------------------------
+// Création des marqueurs à partir du Prénom
+// Tous avec la lettre ${initiale}
+//--------------------------------------------------------------------------------------------------
+function CreationMarqueurs()
+{
+  const lettre = gPrenom[0];
+
+  // Icones dynamiques
+  IconeDebut =         createDynamicIcon(lettre, '#000', '#0F0');
+  IconeFin =           createDynamicIcon(lettre, '#FFF', '#F00');
+  IconePosition =      createDynamicIcon(lettre, '#FFF', '#008');
+  IconeBivouac =       createDynamicIcon(lettre, '#FFF', '#83A');
+
+  // Icones statiques
+  createStaticIcons();
+
+  // Attribution des images
+  pid('imgCurseur').src = IconePosition.options.iconUrl;
+  pid('imgCurseur').style.width = '26px';
+  pid('imgCurseur').style.height = '26px';
+
+  pid('imgLegendeDebut').src = IconeDebut.options.iconUrl;
+  pid('imgLegendeDebut').style.width = '20px';
+  pid('imgLegendeDebut').style.height = '20px';
+
+  pid('imgLegendePosition').src = IconePosition.options.iconUrl;
+  pid('imgLegendePosition').style.width = '20px';
+  pid('imgLegendePosition').style.height = '20px';
+
+  pid('imgLegendeBivouac').src = IconeBivouac.options.iconUrl;
+  pid('imgLegendeBivouac').style.width = '20px';
+  pid('imgLegendeBivouac').style.height = '20px';
+
+  pid('imgLegendeFin').src = IconeFin.options.iconUrl;
+  pid('imgLegendeFin').style.width = '20px';
+  pid('imgLegendeFin').style.height = '20px';
+}
 
 //--------------------------------------------------------------------------------------------------
 // Choix du fond de carte
@@ -1039,11 +1112,12 @@ function SelectionnerChoixPosition(choix)
 function ButAdminClick()
 {
   const but = pid('butAdmin');
-  const pan = pid('panAdminCommandes');
 
   // Il était inactif, on l'active
   if (but.state != 'actif')
   {
+    BoutonEtat('butAdmin', 'actif');
+
     //----- Remplissage des champs avant l'affichage -----
     // Nb Points
     pid('txtAdminNbPoints').innerHTML = S(gItineraire.length, "point");
@@ -1054,19 +1128,27 @@ function ButAdminClick()
     // Prénom
     pid('txtAdminPrenom').value = gPrenom;
 
-    //----- Le reste -----
-    // Etat du bouton et positionnement du panel
-    BoutonEtat('butAdmin', 'actif');
+    // Flag pour savoir si on doit rafraichir quand on désactive le menu Admin
+    gDoitEtreRafraichi =false;
+
+    // Positionnement du panel
     const rect = pid('panButtonsMenu').getBoundingClientRect();
-    pan.style.top = rect.bottom + 'px'; // Sous le menu
-    pan.style.display = 'block';
+    pid('panAdminCommandes').style.top = rect.bottom + 'px'; // Sous le menu
+    pid('panAdminCommandes').style.display = 'block';
   }
 
   // Il était actif, on le désactive
   else
   {
     BoutonEtat('butAdmin', 'inactif');
-    pan.style.display = 'none';
+    pid('panAdminCommandes').style.display = 'none';
+
+    // On doit rafraichir
+    if (gDoitEtreRafraichi)
+    {
+      gDoitEtreRafraichi = false;
+      Rafraichir();
+    }
   }
 }
 
@@ -1087,8 +1169,8 @@ async function ButAdminChargerClick()
   lStatus = await SupabaseReadNomItineraire();
   gNomItineraire = lStatus.data[0].msg;
 
-  // Nouvelles valeurs (le nombre de points est affiché par ChargementItineraireAdmin()
-  pid('txtAdminNomItineraire').value = gNomItineraire;
+  // On doit rafraichir
+  gDoitEtreRafraichi = true;
 }
 
 
@@ -1106,10 +1188,10 @@ async function ButAdminModifierNomClick()
   if (lStatus.status == "OK" && lStatus.length > 0)
     gNomItineraire = lStatus.data[0].msg;
   else
-    gNomItineraire = "(aucun itinéraire)";
+    gNomItineraire = NOM_ITINEAIRE_DEFAUT;
 
-  // Nouvelle valeur
-  pid('txtAdminNomItineraire').value = gNomItineraire;
+  // On doit rafraichir
+  gDoitEtreRafraichi = true;
 }
 
 
@@ -1126,10 +1208,8 @@ async function ButAdminModifierPrenomClick()
   lStatus = await SupabaseReadPrenom();
   gPrenom = lStatus.data[0].msg;
 
-  // Nouvelle valeur
-  pid('txtAdminPrenom').value = gPrenom;
-  pid('spanPrenom').innerHTML = "<b>" + gPrenom + "</b>";
-  pid('spanPrenom').style.opacity = '1';
+  // On doit rafraichir
+  gDoitEtreRafraichi = true;
 }
 
 

@@ -60,45 +60,6 @@ function createStaticIcons()
 }
 
 //--------------------------------------------------------------------------------------------------
-// Création des marqueurs
-// Tous avec la lettre ${initiale}
-//--------------------------------------------------------------------------------------------------
-function CreationMarqueurs()
-{
-  const lettre = gPrenom[0];
-
-  // Icones dynamiques
-  IconeDebut =         createDynamicIcon(lettre, '#000', '#0F0');
-  IconeFin =           createDynamicIcon(lettre, '#FFF', '#F00');
-  IconePosition =      createDynamicIcon(lettre, '#FFF', '#008');
-  IconeBivouac =       createDynamicIcon(lettre, '#FFF', '#83A');
-
-  // Icones statiques
-  createStaticIcons();
-
-  // Attribution des images
-  pid('imgCurseur').src = IconePosition.options.iconUrl;
-  pid('imgCurseur').style.width = '26px';
-  pid('imgCurseur').style.height = '26px';
-
-  pid('imgLegendeDebut').src = IconeDebut.options.iconUrl;
-  pid('imgLegendeDebut').style.width = '20px';
-  pid('imgLegendeDebut').style.height = '20px';
-
-  pid('imgLegendePosition').src = IconePosition.options.iconUrl;
-  pid('imgLegendePosition').style.width = '20px';
-  pid('imgLegendePosition').style.height = '20px';
-
-  pid('imgLegendeBivouac').src = IconeBivouac.options.iconUrl;
-  pid('imgLegendeBivouac').style.width = '20px';
-  pid('imgLegendeBivouac').style.height = '20px';
-
-  pid('imgLegendeFin').src = IconeFin.options.iconUrl;
-  pid('imgLegendeFin').style.width = '20px';
-  pid('imgLegendeFin').style.height = '20px';
-}
-
-//--------------------------------------------------------------------------------------------------
 // Affichage de la carte
 //--------------------------------------------------------------------------------------------------
 function AfficheCarte()
