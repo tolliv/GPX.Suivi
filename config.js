@@ -1,1 +1,1 @@
-const DBG_LANCE_ADMIN = 0;
+const DBG_LANCE_ADMIN = 1;
