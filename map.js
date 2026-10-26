@@ -137,29 +137,45 @@ function AfficheItineraire()
 }
 
 //--------------------------------------------------------------------------------------------------
-// Conversion date : 261011093112 pour 11/10/2026 9h31
-// Retourne une chaine
+// Formate une chaîne de date
+// Aujourd'hui, Hier, ou Date complète
 //--------------------------------------------------------------------------------------------------
-function DecodeDate(date)
+function FormaterDateRelative(dateStr)
 {
-  const d = date.toString();
-
-  // Tableau des mois abrégés
-  const moisNoms = ["janv", "févr", "mars", "avr", "mai", "juin",
-                    "juil", "août", "sept", "oct", "nov", "déc"];
+  const d = dateStr.toString();
 
   // Extraction des segments
-  const annee = "20" + d.substring(0, 2);
-  const m     = d.substring(2, 4);
-  const mois  = moisNoms[Number(m) - 1];
-  const jour  = d.substring(4, 6);
-
+  const annee = 2000 + parseInt(d.substring(0, 2), 10);
+  const moisIndex = parseInt(d.substring(2, 4), 10) - 1;
+  const jour = parseInt(d.substring(4, 6), 10);
   const heure = parseInt(d.substring(6, 8), 10);
-  const min   = d.substring(8, 10);
+  const min = d.substring(8, 10);
 
-  // Retourne la chaîne formatée
-  const lRet = jour + " " + mois + " " + annee + " à " + heure + "h" + min;
-  return(lRet);
+  // Création de l'objet Date pour la comparaison (à minuit pour ignorer l'heure)
+  const dateCible = new Date(annee, moisIndex, jour);
+
+  const aujourdhui = new Date();
+  aujourdhui.setHours(0, 0, 0, 0);
+
+  const hier = new Date(aujourdhui);
+  hier.setDate(aujourdhui.getDate() - 1);
+
+  // Préparation de l'heure
+  const heureFormattee = `${heure}h${min}`;
+
+  // Comparaison
+  if (dateCible.getTime() === aujourdhui.getTime())
+    return { j:"Aujourd'hui", h:heureFormattee };
+
+  else if (dateCible.getTime() === hier.getTime())
+    return { j:"Hier", h:heureFormattee };
+
+  else
+  {
+    const moisNoms = ["janv", "févr", "mars", "avr", "mai", "juin",
+                      "juil", "août", "sept", "oct", "nov", "déc"];
+    return { j:jour + " " + moisNoms[moisIndex] + " " + annee, h:heureFormattee };
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -185,6 +201,8 @@ function AffichePositions()
         iconChoisie = IconePosition;
       else if (pos.poi == 3)
         iconChoisie = IconeBivouac;
+      else if (pos.poi == 4)
+        iconChoisie = IconeFin;
       else
         iconChoisie = IconePosition;
 
@@ -204,9 +222,8 @@ function AffichePositions()
 
         // Récupération des données
         let lMsg = "";
-
-        const lDate = DecodeDate(pos.date);
-        lMsg += "<b><u>" + lDate + "</b></u><br>";
+        const lDate = FormaterDateRelative(pos.date.toString());
+        lMsg += "<b>" + lDate.j + " à " + lDate.h + "</b><br>";
         lMsg += "(" + pos.lat + "," + pos.lon + ")<br>";
         lMsg += "Alt: " + pos.alt + "m<br>";
         lMsg += "Précision: " + pos.prec + "m<br>";

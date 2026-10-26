@@ -818,22 +818,10 @@ async function AfficheProgression()
     // On récupère la dernière position
     const pos = gPositions[gPositions.length - 1];
     const lDate = (pos.date).toString();
-    const lDateToday = DateSupabase().toString();
 
-    // Si aujourd'hui
-    if (lDateToday.substring(0,6) == lDate.substring(0,6))
-    {
-      pid('txtHeurePosition').innerHTML = "<b>Aujourd'hui</b>";
-    }
-
-    // Sinon on met la date complète
-    else
-    {
-      pid('txtHeurePosition').innerHTML = "<b>" + lDate + "</b>";
-    }
-
-    // Heure
-    pid('txtHeurePosition').innerHTML += "<br>" + lDate.substring(6,8) + "h" + lDate.substring(8,10);
+    // Date et heure
+    const lDateAffichee = FormaterDateRelative(lDate);
+    pid('txtHeurePosition').innerHTML = "<b>" + lDateAffichee.j + "</b><br>" + lDateAffichee.h;
 
     // Image du curseur
     if (pos.poi == 1) // Début
@@ -912,6 +900,10 @@ function CalculeDistanceTotaleEtParcourue()
       gDistanceParcourue = gDistanceTotaleItineraire;
     }
   }
+
+  // Cas particulier du dernier point
+  if (dernierePosition == (gItineraire.length - 1) )
+      gDistanceParcourue = gDistanceTotaleItineraire;
 }
 
 
@@ -1411,13 +1403,16 @@ async function ButAdminTstAddPoint()
     {
       nb++;
 
+
       // On ne met pas plus de positions
-      if (nb == 9)
+      if (nb == 11)
         break;
 
       // On mémorise cette position
       if (nb > gPositions.length)
       {
+        console.log("add nb = " + nb);
+
         var lLigne = {...gItineraire[i]};
           console.log("Coordonnées mémorisées: ", lLigne.lat, lLigne.lon);
 
@@ -1496,8 +1491,8 @@ async function ButAdminTstAddPoint()
           console.log("Ecriture " + lStatus + " (" + delta + "s)");
         }
 
-        // POINT 7..8
-        if ((nb >= 7) && (nb <= 8))
+        // POINT 7..9
+        if ((nb >= 7) && (nb <= 9))
         {
           lLigne.lat += 0.000;
           lLigne.lon -= 0.000;
@@ -1513,6 +1508,31 @@ async function ButAdminTstAddPoint()
               prec: 6,
               poi:  2,                // Point normal
               msg: "Ça continue\n" + nb
+          };
+
+          // Ecriture
+          const lStatus = await SupabaseWrite(nouveauPoint);
+          const delta = Math.round(0.100*(performance.now() - t0))/100;
+          console.log("Ecriture " + lStatus + " (" + delta + "s)");
+        }
+
+        // POINT 10
+        if (nb === 10)
+        {
+          lLigne.lat += 0.005;
+          lLigne.lon -= 0.000;
+          const t0 = performance.now();
+          const nouveauPoint =
+          {
+              date: DateSupabase(),    // Format personnalisé (2026/10/11 09:31:12)
+              user: USER,
+              type: 100,               // Trace
+              lat:  lLigne.lat,
+              lon:  lLigne.lon,
+              alt:  1250,
+              prec: 6,
+              poi:  4,                // Point final
+              msg: "C'est fini, youpi \n"
           };
 
           // Ecriture
