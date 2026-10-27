@@ -848,8 +848,14 @@ async function AfficheProgression()
     pid('txtHeurePosition').style.left = targetPx + 'px';
     pid('txtHeurePosition').style.opacity = '1';
 
-    // lPourcentage
-    pid('txtPourcentage').innerHTML = p + "<small>%</small>";
+    // lPourcentage à 100% si on est à la fin
+    if (pos.poi == 4) // Fin
+      pid('txtPourcentage').innerHTML = "100<small>%</small>";
+
+    // Pas la fin, on affiche le % normal
+    else
+      pid('txtPourcentage').innerHTML = p + "<small>%</small>";
+
     pid('txtPourcentage').style.opacity = '1';
 
     pid('divDistances').innerHTML  = "Parcouru : <span class='classTexteLarge'><b>" + lParcourue + "</b></span> km";

@@ -33,25 +33,27 @@
       <div id='txtTitreGPXSuivi'><b>GPX.Suivi</b><br></div>
       <img id='imgGPXSuivi' src='imgGPXSuivi.png'>
       <div id='txtDemarrage'><b>Lecture des informations en cours ..</b></div>
+
+      <!----- PARTIE Informations de connexion pour Admin ----->
+      <div id='panAdminConnexion'>
+        <div id='txtAdmin'></div>
+        <div style='height: 20px;'></div>
+        <div class='classSaisieTitre' >Adresse URL</div>
+        <input class='classSaisieTexte' id='txtUrl' type='text' placeholder="TODO"><br>
+        <div style='height: 15px;'></div>
+        <div class='classSaisieTitre' >Clé</div>
+        <input class='classSaisieTexte' id='txtKey' type='text' placeholder="TODO"><br>
+        <div style='height: 15px;'></div>
+        <div class='classSaisieTitre' >Numéro utilisateur</div>
+        <input class='classSaisieTexte' id='txtUsr' type='text' placeholder="TODO"><br>
+        <div style='height: 20px;'></div>
+        <button id='butAdminValider' onclick='ValiderAdmin()' title="Valider les informations de connexion">Valider</button>
+        <div style='height: 20px;'></div>
+        <div id='txtValiderErreur'></div>
+      </div>
+
     </div>
 
-    <!----- PARTIE Informations de connexion pour Admin ----->
-    <div id='panAdminConnexion'>
-      <div id='txtAdmin'></div>
-      <div style='height: 20px;'></div>
-      <div class='classSaisieTitre' >Adresse URL</div>
-      <input class='classSaisieTexte' id='txtUrl' type='text' placeholder="TODO"><br>
-      <div style='height: 15px;'></div>
-      <div class='classSaisieTitre' >Clé</div>
-      <input class='classSaisieTexte' id='txtKey' type='text' placeholder="TODO"><br>
-      <div style='height: 15px;'></div>
-      <div class='classSaisieTitre' >Numéro utilisateur</div>
-      <input class='classSaisieTexte' id='txtUsr' type='text' placeholder="TODO"><br>
-      <div style='height: 20px;'></div>
-      <button id='butAdminValider' onclick='ValiderAdmin()' title="Valider les informations de connexion">Valider</button>
-      <div style='height: 20px;'></div>
-      <div id='txtValiderErreur'></div>
-    </div>
 
     <!---------- AFFICHAGE PRINCIPAL (après démarrage) ---------->
     <div id='panAffichagePrincipal'>
