@@ -229,12 +229,15 @@ function AffichePositions()
         lMsg += "Précision: " + pos.prec + "m<br>";
         lMsg += "<span style='font-size: 11px;'><i>" + pos.msg + "</i></span>";
 
-        // Création de la Bulle
+        // Création de la Bulle de presque la taille de l'écran
+        const rect = pid('map').getBoundingClientRect();
         marker.bindPopup(lMsg,
         {
             className: 'custom-popup',
-            maxWidth: 300,
-            closeButton: false,
+            maxWidth: rect.width*0.8,
+            maxHeight: rect.height*0.8,
+            closeButton: true,
+            autoPan: false
         });
       }
     });

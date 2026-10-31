@@ -1,5 +1,11 @@
 /* Tag 2610.18 */
-/* Le conteneur principal (la bulle) */
+
+/* Conteneur global */
+.custom-popup
+{
+}
+
+/* Le wrapper */
 .custom-popup .leaflet-popup-content-wrapper {
     background: #FFC;
     color: #FFC;
@@ -21,6 +27,8 @@
     font-family: 'Verdana';
     margin: 5px;
     color: #000;
+    overflow-y: auto;
+    white-space: normal;
 }
 
 /* La carte prend tout l'espace restant */

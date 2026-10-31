@@ -980,8 +980,10 @@ function AfficheRattachements()
 
 //--------------------------------------------------------------------------------------------------
 // Rafraichir tout
+// 'partial' : tout sauf l'itinéraire
+// 'all'     : tout y compris l'itinéraire
 //--------------------------------------------------------------------------------------------------
-async function Rafraichir()
+async function Rafraichir(pMode)
 {
   // Uniquement si pas en cours
   if (gRafraichirEnCours == false)
@@ -1007,15 +1009,31 @@ async function Rafraichir()
     pid('txtPourcentage').style.opacity = 0;
     pid('divDistances').innerHTML = "&nbsp;";
 
-    // Efface l'itinéraire et les marqueurs mais pas la carte
-    map.eachLayer(function (layer)
+    // Effacement
+    if (pMode == 'all')
     {
-      // On ne supprime pas la couche de tuiles (TileLayer)
-      if (layer instanceof L.Polyline || layer instanceof L.Marker || layer instanceof L.CircleMarker)
+      // Efface l'itinéraire et les marqueurs mais pas la carte
+      map.eachLayer(function (layer)
       {
-        map.removeLayer(layer);
-      }
-    });
+        // On ne supprime pas la couche de tuiles (TileLayer)
+        if (layer instanceof L.Polyline || layer instanceof L.Marker || layer instanceof L.CircleMarker)
+        {
+          map.removeLayer(layer);
+        }
+      });
+    }
+    else // 'partial'
+    {
+      // N'efface que les marqueurs
+      map.eachLayer(function (layer)
+      {
+        // On ne supprime pas la couche de tuiles (TileLayer)
+        if (layer instanceof L.Marker || layer instanceof L.CircleMarker)
+        {
+          map.removeLayer(layer);
+        }
+      });
+    }
 
     // Attente pour que tout soit effacé
     await sleep(300);
@@ -1026,8 +1044,15 @@ async function Rafraichir()
     await LecturePrenom();
     pid('txtPrenom').innerHTML = "<b>" + gPrenom + "</b>";
     CreationMarqueurs();
-    await LectureNomItinéraire();
-    const lRetChargementItineraire = await ChargementItineraire();
+
+    // Rechargement de l'itinéraire
+    if (pMode == 'all')
+    {
+      await LectureNomItinéraire();
+      const lRetChargementItineraire = await ChargementItineraire();
+    }
+
+    // Rechargement des positions
     const lRetChargementPositions  = await ChargementPositions();
     InactivationBoutons();
 
@@ -1271,11 +1296,11 @@ function ButAdminClick()
     BoutonEtat('butAdmin', 'inactif');
     pid('panAdminCommandes').style.display = 'none';
 
-    // On doit rafraichir
+    // On doit tout rafraichir
     if (gDoitEtreRafraichi)
     {
       gDoitEtreRafraichi = false;
-      Rafraichir();
+      Rafraichir("all");
     }
   }
 }
