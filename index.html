@@ -1,6 +1,4 @@
-<!------------------------>
-<!--    Tag 2610.18     -->
-<!------------------------>
+<!-- $v=2611.03a -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -9,11 +7,20 @@
   <meta charset='UTF-8'>
 </head>
 <body>
-
-  <link rel='stylesheet' type='text/css' href='main.css'>
-  <script src='main.js'></script>
+  <!-- REF EXT START -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src='driverSupabase.js'></script>
+  <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'/>
+  <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
+  <!-- REF EXT STOP -->
+
+  <!-- REF INT START -->
+  <link rel='stylesheet' type='text/css' href='main.css?v=2611.03a'>
+  <script src='main.js?v=2611.03a'></script>
+  <script src='driverSupabase.js?v=2611.03a'></script>
+  <script src='map.js?v=2611.03a'> </script>
+  <link rel='stylesheet' type='text/css' href='map.css?v=2611.03a'>
+  <!-- REF INT STOP -->
+
 
   <!----- CONTAINER TOP --------------------------------------------------------------------------->
   <div id='panTopContainer'>
@@ -21,7 +28,7 @@
     <!----- PARTIE Informations de connexion pour Admin ----->
     <div id='panDemarrage'>
       <div id='txtTitreGPXSuivi'><b>GPX.Suivi</b><br></div>
-      <img id='imgGPXSuivi' src='imgGPXSuivi.png'>
+      <img id='imgGPXSuivi' src='imgGPXSuivi.png?v=2611.03a'>
       <div id='txtDemarrage'><b>Lecture des informations en cours ..</b></div>
 
       <!----- PARTIE Informations de connexion pour Admin ----->
@@ -141,10 +148,6 @@
       </div>
 
       <!----- PARTIE Map ----->
-      <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'/>
-      <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
-      <script src='map.js'> </script>
-      <link rel='stylesheet' type='text/css' href='map.css'>
       <div id='map'></div>
 
       <!----- PARTIE Chargement ----->

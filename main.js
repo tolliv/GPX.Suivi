@@ -1,7 +1,7 @@
+// $v=2611.03a
 // &usr=124991&url=https://mgogbhqpbqqxqhxyiwwy.supabase.co/rest/v1/table&key=sb_publishable_6uC_TPJTNLGmA3w1e2ZyXw_YgkaxjAM&admin=1
 //==================================================================================================
 // Fichier main
-// Tag 2610.18b
 //==================================================================================================
 const NOM_ITINEAIRE_DEFAUT = "(aucun itinéraire)";
 const PRENOM_DEFAUT = "Toto";
@@ -960,7 +960,6 @@ function AfficheRattachements()
         indexLePlusProche = i;
       }
     }
-    console.log("indexLePlusProche: " + indexLePlusProche );
 
     // On stocke l'index trouvé
     pos.numeroItineraire = 0;                           // Numéro de l'itinéraire (pas encore utilisé)
