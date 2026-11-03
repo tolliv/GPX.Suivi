@@ -221,17 +221,21 @@ function AffichePositions()
         bounds.extend([pos.lat, pos.lon]);
 
         // Récupération des données
-        let lMsg = "";
+        let lPosMsg = pos.msg;
+        if (pos.msg == null)
+          lPosMsg = "";
+
+        let lTexteBulle = "";
         const lDate = FormaterDateRelative(pos.date.toString());
-        lMsg += "<b>" + lDate.j + " à " + lDate.h + "</b><br>";
-        lMsg += "(" + pos.lat + "," + pos.lon + ")<br>";
-        lMsg += "Alt: " + pos.alt + "m<br>";
-        lMsg += "Précision: " + pos.prec + "m<br>";
-        lMsg += "<span style='font-size: 11px;'><i>" + pos.msg + "</i></span>";
+        lTexteBulle += "<b>" + lDate.j + " à " + lDate.h + "</b><br>";
+        lTexteBulle += "(" + pos.lat + "," + pos.lon + ")<br>";
+        lTexteBulle += "Alt: " + pos.alt + "m<br>";
+        lTexteBulle += "Précision: " + pos.prec + "m<br>";
+        lTexteBulle += "<span style='font-size: 11px;'><i>" + lPosMsg + "</i></span>";
 
         // Création de la Bulle de presque la taille de l'écran
         const rect = pid('map').getBoundingClientRect();
-        marker.bindPopup(lMsg,
+        marker.bindPopup(lTexteBulle,
         {
             className: 'custom-popup',
             maxWidth: rect.width*0.8,

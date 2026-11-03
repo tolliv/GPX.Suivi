@@ -58,26 +58,6 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
 
 
 //--------------------------------------------------------------------------------------------------
-// Toggle plein écran
-//--------------------------------------------------------------------------------------------------
-function toggleFullScreen()
-{
-  if (!document.fullscreenElement)
-  {
-    // On demande le plein écran pour tout le document
-    document.documentElement.requestFullscreen().catch(err =>
-    {
-      console.error(`Erreur : ${err.message}`);
-    });
-  }
-  else
-  {
-    // On quitte le plein écran
-    document.exitFullscreen();
-  }
-}
-
-//--------------------------------------------------------------------------------------------------
 // Charge un fichier GPX, l'analyse et extrait les coordonnées lat,lon,alt
 //--------------------------------------------------------------------------------------------------
 async function LoadGPX()
