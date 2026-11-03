@@ -30,76 +30,6 @@ function DateSupabase()
 }
 
 //--------------------------------------------------------------------------------------------------
-// Vérification de la connexion à la base de données
-// Lecture du dernier point
-//--------------------------------------------------------------------------------------------------
-async function ButTestClick()
-{
-  console.log("Test en cours");
-  const t0 = performance.now();
-  const lCmd= "user=eq." + USER
-            + "&order=date.desc"
-            + "&limit=1";
-  const {status, length, data} = await SupabaseRead(lCmd);
-  const delta = Math.round(0.100*(performance.now() - t0))/100;
-  if (status == "OK" & length == 0)
-    console.log("vide (" + delta + "s)");
-  else if (status == "OK")
-    console.log("OK " + length + " points (" + delta + "s) " + data[length-1].date);
-  else
-    console.log(status + " (" + delta + "s)");
-}
-
-//--------------------------------------------------------------------------------------------------
-// Envoi d'un point
-//--------------------------------------------------------------------------------------------------
-async function ButEnvoiClick()
-{
-  console.log("Ecriture en cours");
-  const t0 = performance.now();
-  const nouveauPoint =
-  {
-      date: DateSupabase(),    // Format personnalisé (2026/10/11 09:31:12)
-      user: USER,
-      type: 1,                 // Trace
-      lat:  45.278,
-      lon:  1.432,
-      alt:  1234,
-      prec: 5,
-      poi:  1,
-      msg: "Départ de la randonnée"
-  };
-
-  // Ecriture
-  const lStatus = await SupabaseWrite(nouveauPoint);
-  const delta = Math.round(0.100*(performance.now() - t0))/100;
-  console.log("Ecriture " + lStatus + " (" + delta + "s)");
-}
-
-//--------------------------------------------------------------------------------------------------
-// Lecture d'un nombre de points en partant de la fin
-//--------------------------------------------------------------------------------------------------
-async function ButLectureClick(pNb)
-{
-  console.log("Lecture en cours");
-  const t0 = performance.now();
-  const lCmd= "user=eq." + USER
-            + "&order=date.desc"
-            + "&limit=" + pNb;
-  const {status, length, data} = await SupabaseRead(lCmd);
-  const delta = Math.round(0.100*(performance.now() - t0))/100;
-  if (status == "OK" & length == 0)
-    console.log("vide (" + delta + "s)");
-  else if (status == "OK")
-  {
-    console.log("OK " + length + " points (" + delta + "s) " + data[length-1].date);
-    data.reverse();   // Remet l'ordre [0]=le plus ancien
-  }
-  else
-    console.log(status + " (" + delta + "s)");
-}
-
-//--------------------------------------------------------------------------------------------------
 // Effacement tout ce qui concerne l'utilisateur actuel
 //--------------------------------------------------------------------------------------------------
 async function SupabaseClearAllInformations()
@@ -287,6 +217,15 @@ async function SupabaseEffaceItineraire()
 
 //====================== COMMANDES DE BASE =========================================================
 
+
+//--------------------------------------------------------------------------------------------------
+// Initialisation du client officiel
+//--------------------------------------------------------------------------------------------------
+var supabaseClient;
+function SupabaseInit()
+{
+  supabaseClient = supabase.createClient(API_URL, API_KEY);
+}
 
 //--------------------------------------------------------------------------------------------------
 // Envoie un nouveau point dans la base de données

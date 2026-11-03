@@ -80,7 +80,7 @@ function toggleFullScreen()
 //--------------------------------------------------------------------------------------------------
 // Charge un fichier GPX, l'analyse et extrait les coordonnées lat,lon,alt
 //--------------------------------------------------------------------------------------------------
-async function ButLoadClick()
+async function LoadGPX()
 {
   var lAvancement = 0;
 
@@ -458,7 +458,6 @@ async function ModeCommun()
     {
       if (0) // Pour le DEBUG
       {
-        pid('butAdminTstClear').style.display = 'inline-block';  // Pour le DEBUG
         pid('butAdminAddPoint').style.display = 'inline-block';  // Pour le DEBUG
       }
       AfficheRattachements();
@@ -931,33 +930,45 @@ function calculeDistanceEntrePoints(p1, p2)
 
 //--------------------------------------------------------------------------------------------------
 // Affiche les rattachements des positions à l'itinéraire (point le plus proche)
+// Contraintes :
+// - le point Départ doit se trouver dans le 1er tiers de l'itinéraire
+// - les points suivants se font entre le point précédent et la fin de l'itinéraire
 //--------------------------------------------------------------------------------------------------
 function AfficheRattachements()
 {
-  var indexPosition = 0;
-  var distanceMin = Infinity;
-  var indexLePlusProche = -1;
+  let indexPosition = 0;
+  let distanceMin = Infinity;
+  let indexLePlusProche = -1;
+  let lIndexStart, lIndexStop;
 
   // Pour chaque position mémorisée
-  gPositions.forEach((pos) =>
+  for (let p = 0; p < gPositions.length; p++)
   {
+    pos = gPositions[p];
     distanceMin = Infinity;
-    indexLePlusProche = -1;
     indexPosition++;
 
     //----- Définition des limites de recherche -----
-    let lIndexStart, lIndexStop;
-    // Cas début de la rando (entre le début et la moitié de l'itinéraire)
+    // Cas Début de la rando (entre le début et le tiers de l'itinéraire)
     if (pos.poi == 1)
-      lIndexStart = 0  ,  lIndexStop = gItineraire.length/2;
+    {
+      lIndexStart = 0;
+      lIndexStop = Math.floor(gItineraire.length/3);
+    }
 
-    // Cas fin de la rando (entre la moitié de l'itinéraire et la fin)
+    // Cas Fin de rando (entre le tiers de l'itinéraire et la fin)
     else if (pos.poi == 4)
-      lIndexStart = gItineraire.length/2  ,  lIndexStop = gItineraire.length;
+    {
+      lIndexStart = Math.floor(gItineraire.length/3);
+      lIndexStop = gItineraire.length;
+    }
 
-    // Cas des autres points (tout l'itinéraire)
+    // Après, on regarde le point d'itinéraire le plus proche à partir du point précédent
     else
-      lIndexStart = 0  ,   lIndexStop = gItineraire.length;
+    {
+      lIndexStart = indexLePlusProche;
+      lIndexStop = gItineraire.length;
+    }
 
     // On cherche dans tout l'itinéraire le point le plus proche de la position actuelle
     for (let i = lIndexStart; i < lIndexStop; i++)
@@ -969,13 +980,14 @@ function AfficheRattachements()
         indexLePlusProche = i;
       }
     }
+    console.log("indexLePlusProche: " + indexLePlusProche );
 
     // On stocke l'index trouvé
     pos.numeroItineraire = 0;                           // Numéro de l'itinéraire (pas encore utilisé)
     pos.numeroPointItineraire = indexLePlusProche;      // Numéro du point de l'itinéraire
     pos.distance = Math.sqrt(distanceMin);
     // console.log("Position " + indexPosition +" -> point " + indexLePlusProche + " (Dist: " + pos.distance.toFixed(3) + " km)");
-  });
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1315,7 +1327,7 @@ async function ButAdminChargerClick()
   // Chargement du fichier et écriture dans la base de données
   const lSave = pid('txtAdminNbPoints').innerHTML;
   pid('txtAdminNbPoints').innerHTML = "Choisir le fichier ..";
-  const lRet = await ButLoadClick();
+  const lRet = await LoadGPX();
 
   console.log("lRet = " + lRet);
 
@@ -1413,10 +1425,6 @@ async function ButAdminEffacerClick()
 }
 
 //==================================================================================================
-
-function ButAdminTstClear()
-{
-}
 
 //--------------------------------------------------------------------------------------------------
 // Ajout d'un point par raport au tracé
