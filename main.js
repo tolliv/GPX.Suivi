@@ -1,4 +1,4 @@
-// $v=2611.03a
+// v=2611.06a
 // &usr=124991&url=https://mgogbhqpbqqxqhxyiwwy.supabase.co/rest/v1/table&key=sb_publishable_6uC_TPJTNLGmA3w1e2ZyXw_YgkaxjAM&admin=1
 //==================================================================================================
 // Fichier main
@@ -55,6 +55,28 @@ function pid(id)
 // Sleep
 //--------------------------------------------------------------------------------------------------
 const sleep = ms => new Promise(res => setTimeout(res, ms));
+
+
+//--------------------------------------------------------------------------------------------------
+// Date au format Supabase compacté par tolliv
+// 261011093112 pour 2026 octobre 11 : 09h31m12s
+//--------------------------------------------------------------------------------------------------
+function DateSupabase()
+{
+  const now = new Date();
+
+  // Récupération des composants de la date
+  const yy = String(now.getFullYear()).slice(-2); // Les 2 derniers chiffres de l'année
+  const mm = String(now.getMonth() + 1).padStart(2, '0'); // Mois (0-11 donc +1)
+  const dd = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mi = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+
+  // Concaténation au format nombre 261011093112
+  const result = yy + mm + dd + hh + mi + ss;
+  return(Number(result, 10));
+}
 
 
 //--------------------------------------------------------------------------------------------------
@@ -440,6 +462,7 @@ async function ModeCommun()
       {
         pid('butAdminAddPoint').style.display = 'inline-block';  // Pour le DEBUG
       }
+      CalculeDistanceTotaleEtParcourue();
       AfficheRattachements();
       AfficheItineraire();
     }
@@ -837,14 +860,15 @@ async function AfficheProgression()
 
     pid('txtPourcentage').style.opacity = '1';
 
-    pid('divDistances').innerHTML  = "Parcouru : <span class='classTexteLarge'><b>" + lParcourue + "</b></span> km";
-    pid('divDistances').innerHTML += " -  Restant : <span class='classTexteLarge'><b>" + lRestant + "</b></span> km";
+    pid('txtDistanceParcourue').innerHTML = "Parcouru : <span class='classTexteLarge'><b>" + lParcourue + "</b></span> km";
+    pid('txtDistanceRestante').innerHTML = "Restant : <span class='classTexteLarge'><b>" + lRestant + "</b></span> km";
   }
 
   //----- S'il n'y a pas de position -----
   else
   {
-    pid('divDistances').innerHTML  = "(Aucune position)";
+    pid('txtDistanceParcourue').innerHTML = "";
+    pid('txtDistanceRestante').innerHTML = "";
     pid('txtPourcentage').style.opacity = '0';
     pid('txtHeurePosition').style.opacity = '0';
   }
@@ -879,6 +903,9 @@ function CalculeDistanceTotaleEtParcourue()
     const distance = R * c;
     gDistanceTotaleItineraire += distance;
 
+    // Mémorisation directement dans gIinéraire[]
+    gItineraire[i].distanceParcourue = gDistanceTotaleItineraire;
+
     // Position actuelle
     if (i == dernierePosition)
     {
@@ -888,7 +915,10 @@ function CalculeDistanceTotaleEtParcourue()
 
   // Cas particulier du dernier point
   if (dernierePosition == (gItineraire.length - 1) )
-      gDistanceParcourue = gDistanceTotaleItineraire;
+    gDistanceParcourue = gDistanceTotaleItineraire;
+
+  // Mémorisation du dernier point de gIinéraire[]
+  gItineraire[gItineraire.length - 1].distanceParcourue = gDistanceTotaleItineraire;
 }
 
 
@@ -933,14 +963,7 @@ function AfficheRattachements()
     if (pos.poi == 1)
     {
       lIndexStart = 0;
-      lIndexStop = Math.floor(gItineraire.length/3);
-    }
-
-    // Cas Fin de rando (entre le tiers de l'itinéraire et la fin)
-    else if (pos.poi == 4)
-    {
-      lIndexStart = Math.floor(gItineraire.length/3);
-      lIndexStop = gItineraire.length;
+      lIndexStop = Math.floor(gItineraire.length*1/3);
     }
 
     // Après, on regarde le point d'itinéraire le plus proche à partir du point précédent
@@ -965,7 +988,7 @@ function AfficheRattachements()
     pos.numeroItineraire = 0;                           // Numéro de l'itinéraire (pas encore utilisé)
     pos.numeroPointItineraire = indexLePlusProche;      // Numéro du point de l'itinéraire
     pos.distance = Math.sqrt(distanceMin);
-    // console.log("Position " + indexPosition +" -> point " + indexLePlusProche + " (Dist: " + pos.distance.toFixed(3) + " km)");
+    // console.log("Position " + indexPosition +" -> point " + indexLePlusProche + " (Dist: " + pos.distance.toFixed(3) + " km) " + "POI : " + pos.poi + "  Start=" + lIndexStart + " Stop=" + lIndexStop);
   }
 }
 
@@ -998,7 +1021,8 @@ async function Rafraichir(pMode)
     pid('txtHeurePosition').style.opacity = '0';
     pid('progression-fill').style.width = '0%';
     pid('txtPourcentage').style.opacity = 0;
-    pid('divDistances').innerHTML = "&nbsp;";
+    pid('txtDistanceParcourue').innerHTML = "";
+    pid('txtDistanceRestante').innerHTML = "";
 
     // Effacement
     if (pMode == 'all')

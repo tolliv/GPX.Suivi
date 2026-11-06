@@ -1,4 +1,4 @@
-<!-- $v=2611.03a -->
+<!-- v=2611.06a -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -14,11 +14,11 @@
   <!-- REF EXT STOP -->
 
   <!-- REF INT START -->
-  <link rel='stylesheet' type='text/css' href='main.css?v=2611.03a'>
-  <script src='main.js?v=2611.03a'></script>
-  <script src='driverSupabase.js?v=2611.03a'></script>
-  <script src='map.js?v=2611.03a'> </script>
-  <link rel='stylesheet' type='text/css' href='map.css?v=2611.03a'>
+  <script src='map.js?v=2611.06a'> </script>
+  <link rel='stylesheet' type='text/css' href='map.css?v=2611.06a'>
+  <script src='main.js?v=2611.06a'></script>
+  <link rel='stylesheet' type='text/css' href='main.css?v=2611.06a'>
+  <script src='driverSupabase.js?v=2611.06a'></script>
   <!-- REF INT STOP -->
 
 
@@ -28,7 +28,7 @@
     <!----- PARTIE Informations de connexion pour Admin ----->
     <div id='panDemarrage'>
       <div id='txtTitreGPXSuivi'><b>GPX.Suivi</b><br></div>
-      <img id='imgGPXSuivi' src='imgGPXSuivi.png?v=2611.03a'>
+      <img id='imgGPXSuivi' src='imgGPXSuivi.png?v=2611.06a'>
       <div id='txtDemarrage'><b>Lecture des informations en cours ..</b></div>
 
       <!----- PARTIE Informations de connexion pour Admin ----->
@@ -36,13 +36,13 @@
         <div id='txtAdmin'></div>
         <div style='height: 20px;'></div>
         <div class='classSaisieTitre' >Adresse URL</div>
-        <input class='classSaisieTexte' id='txtUrl' type='text' placeholder="TODO"><br>
+        <input class='classSaisieTexte' id='txtUrl' type='text' placeholder="htpps://..."><br>
         <div style='height: 15px;'></div>
         <div class='classSaisieTitre' >Clé</div>
-        <input class='classSaisieTexte' id='txtKey' type='text' placeholder="TODO"><br>
+        <input class='classSaisieTexte' id='txtKey' type='text' placeholder="sb_publishable..."><br>
         <div style='height: 15px;'></div>
         <div class='classSaisieTitre' >Numéro utilisateur</div>
-        <input class='classSaisieTexte' id='txtUsr' type='text' placeholder="TODO"><br>
+        <input class='classSaisieTexte' id='txtUsr' type='text' placeholder="(6 chiffres)"><br>
         <div style='height: 20px;'></div>
         <button id='butAdminValider' onclick='ValiderAdmin()' title="Valider les informations de connexion">Valider</button>
         <div style='height: 20px;'></div>
@@ -143,7 +143,11 @@
           <div id="progression-labels">
             <span id='spanDistanceMin' onclick="PasseAdminOn();">0km</span><span id='spanDistanceMax' onclick='PasseAdminOff();'>0km</span>
           </div>
-          <div id="divDistances">&nbsp;</div>
+          <div id="divDistances">
+            <span id='txtDistanceParcourue'></span>
+            &nbsp;&nbsp;-&nbsp;&nbsp;
+            <span id='txtDistanceRestante'></span>
+          </div>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-// $v=2611.03a
+// v=2611.06a
 //==================================================================================================
 // Gestion des requêtes pour Supabase
 //==================================================================================================
@@ -7,27 +7,6 @@
 var API_URL = "?";
 var API_KEY = "?";
 var USER    = "?";
-
-//--------------------------------------------------------------------------------------------------
-// Date au format Supabase compacté par tolliv
-// 261011093112 pour 2026 octobre 11 : 09h31m12s
-//--------------------------------------------------------------------------------------------------
-function DateSupabase()
-{
-  const now = new Date();
-
-  // Récupération des composants de la date
-  const yy = String(now.getFullYear()).slice(-2); // Les 2 derniers chiffres de l'année
-  const mm = String(now.getMonth() + 1).padStart(2, '0'); // Mois (0-11 donc +1)
-  const dd = String(now.getDate()).padStart(2, '0');
-  const hh = String(now.getHours()).padStart(2, '0');
-  const mi = String(now.getMinutes()).padStart(2, '0');
-  const ss = String(now.getSeconds()).padStart(2, '0');
-
-  // Concaténation au format nombre 261011093112
-  const result = yy + mm + dd + hh + mi + ss;
-  return(Number(result, 10));
-}
 
 //--------------------------------------------------------------------------------------------------
 // Effacement tout ce qui concerne l'utilisateur actuel
@@ -41,8 +20,6 @@ async function SupabaseClearAllInformations()
   console.log("Suppression " + lStatus + " (" + delta + "s)");
 }
 
-
-//==================================================================================================
 
 //--------------------------------------------------------------------------------------------------
 // Vérification de la connexion à la base de données
@@ -217,15 +194,6 @@ async function SupabaseEffaceItineraire()
 
 //====================== COMMANDES DE BASE =========================================================
 
-
-//--------------------------------------------------------------------------------------------------
-// Initialisation du client officiel
-//--------------------------------------------------------------------------------------------------
-var supabaseClient;
-function SupabaseInit()
-{
-  supabaseClient = supabase.createClient(API_URL, API_KEY);
-}
 
 //--------------------------------------------------------------------------------------------------
 // Envoie un nouveau point dans la base de données

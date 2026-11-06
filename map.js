@@ -1,14 +1,18 @@
-// $v=2611.03a
+// v=2611.06a
 //==================================================================================================
 // Gestion de la carte
 //==================================================================================================
 
 var map;
 var IconeDebut;
-var IconeFin;
 var IconePosition;
 var IconeBivouac;
-var IconeRattachement;
+var IconeFin;
+var IconeRattDebut;
+var IconeRattPosition;
+var IconeRattBivouac;
+var IconeRattFin;
+
 
 //--------------------------------------------------------------------------------------------------
 // Création d'une icone dynamique
@@ -41,18 +45,61 @@ function createDynamicIcon(texte, couleurFront, couleurBack)
 //--------------------------------------------------------------------------------------------------
 function createStaticIcons()
 {
-  const svgString = `
+  //----- 1:Debut -----
+  const svgStringRattDebut = `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10">
+    <circle cx="5" cy="5" r="5" fill="#000" />
+    <circle cx="5" cy="5" r="2" fill="#0F0" />
+  </svg>`.trim();
+
+  const iconUrlRattDebut = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStringRattDebut)));
+  IconeRattDebut = L.icon({
+    iconUrl: iconUrlRattDebut,
+    iconSize: [10, 10],
+    iconAnchor: [5, 5],
+    popupAnchor: [0, -5],
+  });
+
+  //----- 2:Position -----
+  const svgStringRattPosition = `
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10">
     <circle cx="5" cy="5" r="5" fill="#000" />
     <circle cx="5" cy="5" r="2" fill="#FFF" />
   </svg>`.trim();
 
-  // Encodage en Base64 pour compatibilité cross-browser
-  const svgBase64 = btoa(unescape(encodeURIComponent(svgString)));
-  const iconUrl = 'data:image/svg+xml;base64,' + svgBase64;
+  const iconUrlRattPosition = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStringRattPosition)));
+  IconeRattPosition = L.icon({
+    iconUrl: iconUrlRattPosition,
+    iconSize: [10, 10],
+    iconAnchor: [5, 5],
+    popupAnchor: [0, -5],
+  });
 
-  IconeRattachement = L.icon({
-    iconUrl: iconUrl,
+  //----- 3:Bivouac -----
+  const svgStringRattBivouac = `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10">
+    <circle cx="5" cy="5" r="5" fill="#000" />
+    <circle cx="5" cy="5" r="2" fill="#83A" />
+  </svg>`.trim();
+
+  const iconUrlRattBivouac = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStringRattBivouac)));
+  IconeRattBivouac = L.icon({
+    iconUrl: iconUrlRattBivouac,
+    iconSize: [10, 10],
+    iconAnchor: [5, 5],
+    popupAnchor: [0, -5],
+  });
+
+  //----- 4:Fin -----
+  const svgStringRattFin = `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10">
+    <circle cx="5" cy="5" r="5" fill="#000" />
+    <circle cx="5" cy="5" r="2" fill="#F00" />
+  </svg>`.trim();
+
+  const iconUrlRattFin = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStringRattFin)));
+  IconeRattFin = L.icon({
+    iconUrl: iconUrlRattFin,
     iconSize: [10, 10],
     iconAnchor: [5, 5],
     popupAnchor: [0, -5],
@@ -122,7 +169,7 @@ function AfficheItineraire()
     // Affichage de la partie restante (Pointillés)
     if (cheminRestant.length > 1) {
         const traceRestante = L.polyline(cheminRestant,
-        {
+    {
             color: '#00F',
             weight: 4,
             opacity: 1,
@@ -193,18 +240,18 @@ function AffichePositions()
     {
       nb++;
 
-      // Création du marqueur
-      var iconChoisie;
+      // Création du petit rond de rattachement
+      var iconRattachement;
       if (pos.poi == 1)
-        iconChoisie = IconeDebut;
+        iconRattachement = IconeRattDebut;
       else if (pos.poi == 2)
-        iconChoisie = IconePosition;
+        iconRattachement = IconeRattPosition;
       else if (pos.poi == 3)
-        iconChoisie = IconeBivouac;
+        iconRattachement = IconeRattBivouac;
       else if (pos.poi == 4)
-        iconChoisie = IconeFin;
+        iconRattachement = IconeRattFin;
       else
-        iconChoisie = IconePosition;
+        iconRattachement = IconeRattPosition;
 
       // Suivant si on affiche tout ou seulement la dernière position
       if ( (gAffichagePositions == 'all') || ((gAffichagePositions == 'last') && (nb == gPositions.length-1)) )
@@ -212,9 +259,20 @@ function AffichePositions()
         // Icone rattachement sur l'itinéraire
         const latItineraire = gItineraire[pos.numeroPointItineraire].lat;
         const lonItineraire = gItineraire[pos.numeroPointItineraire].lon;
-        const rattachement = L.marker([latItineraire, lonItineraire], {icon:IconeRattachement, zIndexOffset:-1000}).addTo(map);
+        const rattachement = L.marker([latItineraire, lonItineraire], {icon:iconRattachement, zIndexOffset:-1000}).addTo(map);
 
         // Icone du POI
+        var iconChoisie;
+        if (pos.poi == 1)
+          iconChoisie = IconeDebut;
+        else if (pos.poi == 2)
+          iconChoisie = IconePosition;
+        else if (pos.poi == 3)
+          iconChoisie = IconeBivouac;
+        else if (pos.poi == 4)
+          iconChoisie = IconeFin;
+        else
+        iconChoisie = IconePosition;
         const marker = L.marker([pos.lat, pos.lon], {icon:iconChoisie}).addTo(map);
 
         // Prend en compte les markers dans les limites
@@ -225,12 +283,17 @@ function AffichePositions()
         if (pos.msg == null)
           lPosMsg = "";
 
+        // Avancement affiché dans la bulle
+        const lPointItineraire = pos.numeroPointItineraire;
+        const lDistanceParcourue = gItineraire[lPointItineraire].distanceParcourue;
+        const lAvancement = Math.floor(100 * lDistanceParcourue / gDistanceTotaleItineraire);
+
         let lTexteBulle = "";
         const lDate = FormaterDateRelative(pos.date.toString());
         lTexteBulle += "<b>" + lDate.j + " à " + lDate.h + "</b><br>";
-        lTexteBulle += "(" + pos.lat + "," + pos.lon + ")<br>";
+        lTexteBulle += "<span>Parcouru: " + lDistanceParcourue.toFixed(1) + "km</span>&nbsp;<span style='color: #FFF; background: #008;'><b>" + lAvancement + "<small>%</small></b></span><br>";
+        lTexteBulle += "(" + pos.lat + "," + pos.lon + ")&nbsp;Précision: " + pos.prec + "m<br>";
         lTexteBulle += "Alt: " + pos.alt + "m<br>";
-        lTexteBulle += "Précision: " + pos.prec + "m<br>";
         lTexteBulle += "<span style='font-size: 11px;'><i>" + lPosMsg + "</i></span>";
 
         // Création de la Bulle de presque la taille de l'écran

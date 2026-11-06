@@ -1,4 +1,4 @@
-/* $v=2611.03a */
+/* v=2611.06a */
 
 /* Conteneur global */
 .custom-popup
@@ -26,6 +26,7 @@
 {
     font-family: 'Verdana';
     margin: 5px;
+    margin-top: 15px;
     color: #000;
     overflow-y: auto;
     white-space: normal;
